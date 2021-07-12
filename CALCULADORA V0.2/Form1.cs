@@ -218,7 +218,7 @@ namespace CALCULADORA_V0._2
         }
         private void btnborrar_Click(object sender, EventArgs e)
         {
-            txtpantalla.Clear();
+            txtpantalla.Text="0" ;
         }
 
         private void btnborarrtodo_Click(object sender, EventArgs e)
