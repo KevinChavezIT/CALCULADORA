@@ -155,6 +155,7 @@ namespace CALCULADORA_V0._2
             operacion = "%";
 
             Num2 = double.Parse(txtpantalla.Text);          
+
             txtpantalla.Text = Convert.ToString((Num1 )* Num2/100);           
             lbhistorial.Text = lbhistorial.Text + txtpantalla.Text;         
             btnporciento.Enabled = true;

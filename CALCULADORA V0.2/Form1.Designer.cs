@@ -29,7 +29,9 @@ namespace CALCULADORA_V0._2
         /// </summary>
         private void InitializeComponent()
         {
+
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+
             this.lbhistorial = new System.Windows.Forms.Label();
             this.btnporciento = new System.Windows.Forms.Button();
             this.btnigual = new System.Windows.Forms.Button();
@@ -420,7 +422,11 @@ namespace CALCULADORA_V0._2
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.RoyalBlue;
+
             this.ClientSize = new System.Drawing.Size(299, 447);
+
+            this.ClientSize = new System.Drawing.Size(303, 432);
+
             this.Controls.Add(this.lbhistorial);
             this.Controls.Add(this.btnporciento);
             this.Controls.Add(this.btnigual);
@@ -447,7 +453,9 @@ namespace CALCULADORA_V0._2
             this.Controls.Add(this.btnone);
             this.Controls.Add(this.txtpantalla);
             this.ForeColor = System.Drawing.Color.Azure;
+
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+
             this.Name = "Form1";
             this.Text = "CALCULEITOR";
             this.ResumeLayout(false);
