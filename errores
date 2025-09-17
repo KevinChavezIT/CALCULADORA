@@ -1,0 +1,6 @@
+{
+  "script_output.stdout": "Procesando storage: PRECSTG001 (10.151.41.60)\nError obteniendo token: 401 - {\"messages\":[{\"code\":\"SM_http_unauthorized\",\"severity\":\"error\",\"text\":\"The request requires user authentication.\"},{\"code\":\"SM_auth\",\"severity\":\"error\",\"text\":\"Failed to authenticate.\"}]}\n  → Error: No se pudo obtener token para PRECSTG001\nProcesando storage: DRECSTG001 (10.151.41.129)\nError obteniendo token: 401 - {\"messages\":[{\"code\":\"SM_http_unauthorized\",\"severity\":\"error\",\"text\":\"The request requires user authentication.\"},{\"code\":\"SM_auth\",\"severity\":\"error\",\"text\":\"Failed to authenticate.\"}]}\n  → Error: No se pudo obtener token para DRECSTG001\n\n=== RESUMEN DE EJECUCIÓN ===\nStorages procesados: 0\nTotal de volúmenes: 0\nCapacidad total: 0.00 GB\nArchivos generados: 0",
+  "_ansible_verbose_always": true,
+  "_ansible_no_log": false,
+  "changed": false
+}
