@@ -1,6 +1,33 @@
-Traceback (most recent call last):
-  File "/runner/project/./get_luns_alletra.py", line 121, in <module>
-    token = get_token(connection, stg[3], stg[4])
-  File "/runner/project/./get_luns_alletra.py", line 32, in get_token
-    return json.loads(response_data)["data"]["session_token"]
-KeyError: 'data'
+{
+  "debug_result.stdout_lines": [
+    "🎯 DEBUGGING TOKEN REQUEST",
+    "🔗 Conectando a 10.151.41.129:5392...",
+    "🔑 Solicitando token para usuario: LOGIN_USER",
+    "🔍 Enviando request a: POST /v1/tokens",
+    "📦 Data: {\"data\": {\"username\": \"LOGIN_USER\", \"password\": \"LOGIN_PASS\"}}",
+    "📥 Response:",
+    "   Status: 401 OK",
+    "   Response: {\"messages\":[{\"code\":\"SM_http_unauthorized\",\"severity\":\"error\",\"text\":\"The request requires user authentication.\"},{\"code\":\"SM_auth\",\"severity\":\"error\",\"text\":\"Failed to authenticate.\"}]}",
+    "✅ JSON parseado: {",
+    "  \"messages\": [",
+    "    {",
+    "      \"code\": \"SM_http_unauthorized\",",
+    "      \"severity\": \"error\",",
+    "      \"text\": \"The request requires user authentication.\"",
+    "    },",
+    "    {",
+    "      \"code\": \"SM_auth\",",
+    "      \"severity\": \"error\",",
+    "      \"text\": \"Failed to authenticate.\"",
+    "    }",
+    "  ]",
+    "}",
+    "🔍 Keys disponibles: ['messages']",
+    "❌ KeyError: 'data' - Estructura no coincide",
+    "La respuesta REAL no tiene la estructura esperada",
+    "❌ No se pudo obtener el token"
+  ],
+  "_ansible_verbose_always": true,
+  "_ansible_no_log": false,
+  "changed": false
+}
