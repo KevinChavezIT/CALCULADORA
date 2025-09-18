@@ -1,5 +1,16 @@
 {
-  "script_output.stdout": "Procesando storage: PRECSTG001 (10.151.41.60)\nError obteniendo token: 401 - {\"messages\":[{\"code\":\"SM_http_unauthorized\",\"severity\":\"error\",\"text\":\"The request requires user authentication.\"},{\"code\":\"SM_auth\",\"severity\":\"error\",\"text\":\"Failed to authenticate.\"}]}\n  → Error: No se pudo obtener token para PRECSTG001\nProcesando storage: DRECSTG001 (10.151.41.129)\nError obteniendo token: 401 - {\"messages\":[{\"code\":\"SM_http_unauthorized\",\"severity\":\"error\",\"text\":\"The request requires user authentication.\"},{\"code\":\"SM_auth\",\"severity\":\"error\",\"text\":\"Failed to authenticate.\"}]}\n  → Error: No se pudo obtener token para DRECSTG001\n\n=== RESUMEN DE EJECUCIÓN ===\nStorages procesados: 0\nTotal de volúmenes: 0\nCapacidad total: 0.00 GB\nArchivos generados: 0",
+  "token_test_result.stdout_lines": [
+    "🔍 DEBUG API ALletRA Response",
+    "✅ Conexión HTTPS establecida",
+    "📊 Status Code: 401",
+    "📊 Reason: OK",
+    "📄 Raw Response: {\"messages\":[{\"code\":\"SM_http_unauthorized\",\"severity\":\"error\",\"text\":\"The request requires user authentication.\"},{\"code\":\"SM_auth\",\"severity\":\"error\",\"text\":\"Failed to authenticate.\"}]}",
+    "✅ JSON parseado correctamente",
+    "📋 JSON Structure: {'messages': [{'code': 'SM_http_unauthorized', 'severity': 'error', 'text': 'The request requires user authentication.'}, {'code': 'SM_auth', 'severity': 'error', 'text': 'Failed to authenticate.'}]}",
+    "❌ Estructura INCORRECTA",
+    "La respuesta no tiene la estructura esperada",
+    "Keys disponibles: ['messages']"
+  ],
   "_ansible_verbose_always": true,
   "_ansible_no_log": false,
   "changed": false
