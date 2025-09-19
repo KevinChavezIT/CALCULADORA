@@ -1,48 +1,34 @@
 {
-  "content": "{\"messages\":[{\"code\":\"SM_http_bad_request\",\"severity\":\"error\",\"text\":\"The request could not be understood by the server.\"},{\"code\":\"SM_missing_arg\",\"severity\":\"error\",\"arguments\":{\"arg\":\"username\"},\"text\":\"Missing the argument 'username' in the request.\"},{\"code\":\"SM_missing_arg\",\"severity\":\"error\",\"arguments\":{\"arg\":\"password\"},\"text\":\"Missing the argument 'password' in the request.\"}]}",
+  "content": "{\"data\":{\"app_name\":\"\",\"creation_time\":1758303165,\"expiry_time\":1758304965,\"id\":\"190484a0114275be1e0000000000000000000c1bf8\",\"last_modified\":1758303165,\"session_token\":\"99631a2f86458ac198a1624c44960ba8\",\"source_ip\":\"10.70.64.182\",\"username\":\"Ansible\"}}",
   "redirected": false,
   "url": "https://10.151.41.60:5392/v1/tokens",
-  "status": 400,
+  "status": 201,
   "connection": "Close",
   "content_type": "application/json;charset=utf-8",
-  "date": "Fri, 19 Sep 2025 15:45:39 GMT",
+  "date": "Fri, 19 Sep 2025 17:32:45 GMT",
   "nimble_large_object": "false",
   "transfer_encoding": "chunked",
+  "cookies_string": "",
+  "cookies": {},
   "elapsed": 0,
   "changed": false,
   "json": {
-    "messages": [
-      {
-        "code": "SM_http_bad_request",
-        "severity": "error",
-        "text": "The request could not be understood by the server."
-      },
-      {
-        "code": "SM_missing_arg",
-        "severity": "error",
-        "arguments": {
-          "arg": "username"
-        },
-        "text": "Missing the argument 'username' in the request."
-      },
-      {
-        "code": "SM_missing_arg",
-        "severity": "error",
-        "arguments": {
-          "arg": "password"
-        },
-        "text": "Missing the argument 'password' in the request."
-      }
-    ]
+    "data": {
+      "app_name": "",
+      "creation_time": 1758303165,
+      "expiry_time": 1758304965,
+      "id": "190484a0114275be1e0000000000000000000c1bf8",
+      "last_modified": 1758303165,
+      "session_token": "99631a2f86458ac198a1624c44960ba8",
+      "source_ip": "10.70.64.182",
+      "username": "Ansible"
+    }
   },
-  "msg": "Status code was 400 and not [200]: HTTP Error 400: OK",
+  "msg": "Status code was 201 and not [200]: OK (unknown bytes)",
   "invocation": {
     "module_args": {
       "url": "https://10.151.41.60:5392/v1/tokens",
       "method": "POST",
-      "user": "Ansible",
-      "password": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER",
-      "force_basic_auth": true,
       "validate_certs": false,
       "return_content": true,
       "headers": {
@@ -51,15 +37,16 @@
       },
       "body_format": "json",
       "body": {
-        "username": "Ansible",
-        "password": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+        "data": {
+          "username": "Ansible",
+          "password": "qeE39K/43hdy"
+        }
       },
       "unsafe_writes": true,
-      "url_username": "Ansible",
-      "url_password": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER",
       "force": false,
       "http_agent": "ansible-httpget",
       "use_proxy": true,
+      "force_basic_auth": false,
       "use_gssapi": false,
       "follow_redirects": "safe",
       "status_code": [
@@ -70,6 +57,8 @@
       "unredirected_headers": [],
       "decompress": true,
       "use_netrc": true,
+      "url_username": null,
+      "url_password": null,
       "client_cert": null,
       "client_key": null,
       "dest": null,
@@ -90,5 +79,5 @@
     }
   },
   "_ansible_no_log": false,
-  "failed_when_result": true
+  "failed_when_result": false
 }
