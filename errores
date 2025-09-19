@@ -1,46 +1,43 @@
 {
-  "content": "{\"data\":{\"app_name\":\"\",\"creation_time\":1758303165,\"expiry_time\":1758304965,\"id\":\"190484a0114275be1e0000000000000000000c1bf8\",\"last_modified\":1758303165,\"session_token\":\"99631a2f86458ac198a1624c44960ba8\",\"source_ip\":\"10.70.64.182\",\"username\":\"Ansible\"}}",
+  "content": "{\"messages\":[{\"code\":\"SM_http_not_found\",\"severity\":\"error\",\"text\":\"Server has not found the requested object.\"},{\"code\":\"SM_no_method_for_URL_pattern\",\"severity\":\"error\",\"arguments\":{\"method\":\"GET\"},\"text\":\"URL pattern in the request does not support HTTP method GET.\"}]}",
   "redirected": false,
-  "url": "https://10.151.41.60:5392/v1/tokens",
-  "status": 201,
+  "url": "https://10.151.41.60:5392/v1/volume",
+  "status": 404,
   "connection": "Close",
   "content_type": "application/json;charset=utf-8",
-  "date": "Fri, 19 Sep 2025 17:32:45 GMT",
+  "date": "Fri, 19 Sep 2025 17:57:48 GMT",
   "nimble_large_object": "false",
   "transfer_encoding": "chunked",
-  "cookies_string": "",
-  "cookies": {},
   "elapsed": 0,
   "changed": false,
   "json": {
-    "data": {
-      "app_name": "",
-      "creation_time": 1758303165,
-      "expiry_time": 1758304965,
-      "id": "190484a0114275be1e0000000000000000000c1bf8",
-      "last_modified": 1758303165,
-      "session_token": "99631a2f86458ac198a1624c44960ba8",
-      "source_ip": "10.70.64.182",
-      "username": "Ansible"
-    }
+    "messages": [
+      {
+        "code": "SM_http_not_found",
+        "severity": "error",
+        "text": "Server has not found the requested object."
+      },
+      {
+        "code": "SM_no_method_for_URL_pattern",
+        "severity": "error",
+        "arguments": {
+          "method": "GET"
+        },
+        "text": "URL pattern in the request does not support HTTP method GET."
+      }
+    ]
   },
-  "msg": "Status code was 201 and not [200]: OK (unknown bytes)",
+  "msg": "Status code was 404 and not [200]: HTTP Error 404: OK",
   "invocation": {
     "module_args": {
-      "url": "https://10.151.41.60:5392/v1/tokens",
-      "method": "POST",
+      "url": "https://10.151.41.60:5392/v1/volume",
+      "method": "GET",
       "validate_certs": false,
       "return_content": true,
       "headers": {
         "Accept": "application/json",
+        "X-Auth-Token": "0349247a6e0e811ad388ff579be6e0ac",
         "Content-Type": "application/json"
-      },
-      "body_format": "json",
-      "body": {
-        "data": {
-          "username": "Ansible",
-          "password": "qeE39K/43hdy"
-        }
       },
       "unsafe_writes": true,
       "force": false,
@@ -48,6 +45,7 @@
       "use_proxy": true,
       "force_basic_auth": false,
       "use_gssapi": false,
+      "body_format": "raw",
       "follow_redirects": "safe",
       "status_code": [
         200
@@ -62,6 +60,7 @@
       "client_cert": null,
       "client_key": null,
       "dest": null,
+      "body": null,
       "src": null,
       "creates": null,
       "removes": null,
@@ -79,5 +78,5 @@
     }
   },
   "_ansible_no_log": false,
-  "failed_when_result": false
+  "failed_when_result": true
 }
