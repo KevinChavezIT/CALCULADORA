@@ -1,28 +1,87 @@
----
-- name: Obtener LUNs desde Active IQ Unified Manager
-  hosts: localhost
-  gather_facts: true
-  vars:
-    info_dir: "C:\\info_luns"
-    csv_file: "luns_NetApp.csv"
-    temp_csv_path: "C:\\info_luns\\luns_NetApp.csv"
-
-  tasks:
-
-  pre_tasks:
-    - name: Log start of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.pre_task
-
-    - name: Consultar todas las LUNs
-      ansible.builtin.uri:
-        url: https://10.70.89.21/api/datacenter/storage/luns
-        method: GET
-        user: "{{ LOGIN_USER }}"
-        password: "{{ LOGIN_PASS }}"
-        force_basic_auth: true
-        validate_certs: false
-        return_content: true
-        headers:
-          Accept: "application/json"
-      register: luns_response
+{
+  "content": "{\"messages\":[{\"code\":\"SM_http_not_found\",\"severity\":\"error\",\"text\":\"Server has not found the requested object.\"},{\"code\":\"SM_version_name\",\"severity\":\"error\",\"arguments\":{\"version1\":\"api\",\"version2\":\"v1\"},\"text\":\"Unsupported version 'api'. Supported version name is 'v1'.\"}]}",
+  "redirected": false,
+  "url": "https://10.151.41.60:5392/api/v1/tokens",
+  "status": 404,
+  "connection": "Close",
+  "content_type": "application/json;charset=utf-8",
+  "date": "Fri, 19 Sep 2025 15:36:07 GMT",
+  "nimble_large_object": "false",
+  "transfer_encoding": "chunked",
+  "elapsed": 0,
+  "changed": false,
+  "json": {
+    "messages": [
+      {
+        "code": "SM_http_not_found",
+        "severity": "error",
+        "text": "Server has not found the requested object."
+      },
+      {
+        "code": "SM_version_name",
+        "severity": "error",
+        "arguments": {
+          "version1": "api",
+          "version2": "v1"
+        },
+        "text": "Unsupported version 'api'. Supported version name is 'v1'."
+      }
+    ]
+  },
+  "msg": "Status code was 404 and not [200]: HTTP Error 404: OK",
+  "invocation": {
+    "module_args": {
+      "url": "https://10.151.41.60:5392/api/v1/tokens",
+      "method": "POST",
+      "user": "Ansible",
+      "password": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER",
+      "force_basic_auth": true,
+      "validate_certs": false,
+      "return_content": true,
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      "body_format": "json",
+      "body": {
+        "username": "Ansible",
+        "password": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+      },
+      "unsafe_writes": true,
+      "url_username": "Ansible",
+      "url_password": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER",
+      "force": false,
+      "http_agent": "ansible-httpget",
+      "use_proxy": true,
+      "use_gssapi": false,
+      "follow_redirects": "safe",
+      "status_code": [
+        200
+      ],
+      "timeout": 30,
+      "remote_src": false,
+      "unredirected_headers": [],
+      "decompress": true,
+      "use_netrc": true,
+      "client_cert": null,
+      "client_key": null,
+      "dest": null,
+      "src": null,
+      "creates": null,
+      "removes": null,
+      "unix_socket": null,
+      "ca_path": null,
+      "ciphers": null,
+      "mode": null,
+      "owner": null,
+      "group": null,
+      "seuser": null,
+      "serole": null,
+      "selevel": null,
+      "setype": null,
+      "attributes": null
+    }
+  },
+  "_ansible_no_log": false,
+  "failed_when_result": true
+}
