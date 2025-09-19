@@ -1,11 +1,11 @@
 {
-  "content": "{\"messages\":[{\"code\":\"SM_http_not_found\",\"severity\":\"error\",\"text\":\"Server has not found the requested object.\"},{\"code\":\"SM_version_name\",\"severity\":\"error\",\"arguments\":{\"version1\":\"api\",\"version2\":\"v1\"},\"text\":\"Unsupported version 'api'. Supported version name is 'v1'.\"}]}",
+  "content": "{\"messages\":[{\"code\":\"SM_http_bad_request\",\"severity\":\"error\",\"text\":\"The request could not be understood by the server.\"},{\"code\":\"SM_missing_arg\",\"severity\":\"error\",\"arguments\":{\"arg\":\"username\"},\"text\":\"Missing the argument 'username' in the request.\"},{\"code\":\"SM_missing_arg\",\"severity\":\"error\",\"arguments\":{\"arg\":\"password\"},\"text\":\"Missing the argument 'password' in the request.\"}]}",
   "redirected": false,
-  "url": "https://10.151.41.60:5392/api/v1/tokens",
-  "status": 404,
+  "url": "https://10.151.41.60:5392/v1/tokens",
+  "status": 400,
   "connection": "Close",
   "content_type": "application/json;charset=utf-8",
-  "date": "Fri, 19 Sep 2025 15:36:07 GMT",
+  "date": "Fri, 19 Sep 2025 15:45:39 GMT",
   "nimble_large_object": "false",
   "transfer_encoding": "chunked",
   "elapsed": 0,
@@ -13,25 +13,32 @@
   "json": {
     "messages": [
       {
-        "code": "SM_http_not_found",
+        "code": "SM_http_bad_request",
         "severity": "error",
-        "text": "Server has not found the requested object."
+        "text": "The request could not be understood by the server."
       },
       {
-        "code": "SM_version_name",
+        "code": "SM_missing_arg",
         "severity": "error",
         "arguments": {
-          "version1": "api",
-          "version2": "v1"
+          "arg": "username"
         },
-        "text": "Unsupported version 'api'. Supported version name is 'v1'."
+        "text": "Missing the argument 'username' in the request."
+      },
+      {
+        "code": "SM_missing_arg",
+        "severity": "error",
+        "arguments": {
+          "arg": "password"
+        },
+        "text": "Missing the argument 'password' in the request."
       }
     ]
   },
-  "msg": "Status code was 404 and not [200]: HTTP Error 404: OK",
+  "msg": "Status code was 400 and not [200]: HTTP Error 400: OK",
   "invocation": {
     "module_args": {
-      "url": "https://10.151.41.60:5392/api/v1/tokens",
+      "url": "https://10.151.41.60:5392/v1/tokens",
       "method": "POST",
       "user": "Ansible",
       "password": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER",
