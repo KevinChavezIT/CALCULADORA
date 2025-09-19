@@ -1,0 +1,89 @@
+---
+- name: Obtener token y LUNs
+  hosts: localhost
+  gather_facts: true
+  vars:
+    api_base_url: "https://10.151.41.60:5392"
+    auth_endpoint: "v1/tokens"
+    events_endpoint: "v1/events/detail"
+
+  tasks:
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Obtener token de autenticación
+      ansible.builtin.uri:
+        url: "{{ api_base_url }}/{{ auth_endpoint }}"
+        method: POST
+        validate_certs: false
+        return_content: true
+        headers:
+          Accept: "application/json"
+          Content-Type: "application/json"
+        body_format: json
+        body: {
+          "data": {
+            "username": "{{ LOGIN_USER }}",
+            "password": "{{ LOGIN_PASS }}"
+          }
+        }
+      register: auth_response
+      failed_when: auth_response.status != 201
+
+    - name: Extraer token de la respuesta
+      ansible.builtin.set_fact:
+        auth_token: "{{ auth_response.json.data.session_token }}"
+
+    - name: Mostrar el token obtenido
+      ansible.builtin.debug:
+        msg: "Token de autenticación: {{ auth_token }}"
+
+    - name: Consultar eventos (sin filtros)
+      ansible.builtin.uri:
+        url: "{{ api_base_url }}/{{ events_endpoint }}"
+        method: GET
+        validate_certs: false
+        return_content: true
+        headers:
+          Accept: "application/json"
+          X-Auth-Token: "{{ auth_token }}"
+          Content-Type: "application/json"
+      register: events_response
+      failed_when: events_response.status != 200
+
+    - name: Mostrar información básica de eventos
+      ansible.builtin.debug:
+        msg: "Status: {{ events_response.status }}, Total eventos: {{ events_response.json.data | length }}"
+
+    - name: Consultar eventos filtrados por categoría 'volume'
+      ansible.builtin.uri:
+        url: "{{ api_base_url }}/{{ events_endpoint }}?category=volume"
+        method: GET
+        validate_certs: false
+        return_content: true
+        headers:
+          Accept: "application/json"
+          X-Auth-Token: "{{ auth_token }}"
+          Content-Type: "application/json"
+      register: events_volume_response
+      failed_when: events_volume_response.status != 200
+      ignore_errors: true
+
+    - name: Mostrar eventos de volumen
+      ansible.builtin.debug:
+        msg: "Eventos de volumen: {{ events_volume_response.json.data | length }}"
+      when: events_volume_response.status == 200
+
+    - name: Mostrar estructura del primer evento de volumen
+      ansible.builtin.debug:
+        var: item
+      loop: "{{ events_volume_response.json.data[0:2] }}"
+      when: events_volume_response.status == 200
+
+  post_tasks:
+    - name: Log end of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.post_task
