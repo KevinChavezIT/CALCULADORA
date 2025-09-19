@@ -1,33 +1,28 @@
-{
-  "debug_result.stdout_lines": [
-    "🎯 DEBUGGING TOKEN REQUEST",
-    "🔗 Conectando a 10.151.41.129:5392...",
-    "🔑 Solicitando token para usuario: LOGIN_USER",
-    "🔍 Enviando request a: POST /v1/tokens",
-    "📦 Data: {\"data\": {\"username\": \"LOGIN_USER\", \"password\": \"LOGIN_PASS\"}}",
-    "📥 Response:",
-    "   Status: 401 OK",
-    "   Response: {\"messages\":[{\"code\":\"SM_http_unauthorized\",\"severity\":\"error\",\"text\":\"The request requires user authentication.\"},{\"code\":\"SM_auth\",\"severity\":\"error\",\"text\":\"Failed to authenticate.\"}]}",
-    "✅ JSON parseado: {",
-    "  \"messages\": [",
-    "    {",
-    "      \"code\": \"SM_http_unauthorized\",",
-    "      \"severity\": \"error\",",
-    "      \"text\": \"The request requires user authentication.\"",
-    "    },",
-    "    {",
-    "      \"code\": \"SM_auth\",",
-    "      \"severity\": \"error\",",
-    "      \"text\": \"Failed to authenticate.\"",
-    "    }",
-    "  ]",
-    "}",
-    "🔍 Keys disponibles: ['messages']",
-    "❌ KeyError: 'data' - Estructura no coincide",
-    "La respuesta REAL no tiene la estructura esperada",
-    "❌ No se pudo obtener el token"
-  ],
-  "_ansible_verbose_always": true,
-  "_ansible_no_log": false,
-  "changed": false
-}
+---
+- name: Obtener LUNs desde Active IQ Unified Manager
+  hosts: localhost
+  gather_facts: true
+  vars:
+    info_dir: "C:\\info_luns"
+    csv_file: "luns_NetApp.csv"
+    temp_csv_path: "C:\\info_luns\\luns_NetApp.csv"
+
+  tasks:
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Consultar todas las LUNs
+      ansible.builtin.uri:
+        url: https://10.70.89.21/api/datacenter/storage/luns
+        method: GET
+        user: "{{ LOGIN_USER }}"
+        password: "{{ LOGIN_PASS }}"
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        headers:
+          Accept: "application/json"
+      register: luns_response
