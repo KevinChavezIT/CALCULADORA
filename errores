@@ -1,82 +1,36 @@
 {
-  "content": "{\"messages\":[{\"code\":\"SM_http_not_found\",\"severity\":\"error\",\"text\":\"Server has not found the requested object.\"},{\"code\":\"SM_no_method_for_URL_pattern\",\"severity\":\"error\",\"arguments\":{\"method\":\"GET\"},\"text\":\"URL pattern in the request does not support HTTP method GET.\"}]}",
-  "redirected": false,
-  "url": "https://10.151.41.60:5392/v1/volume",
-  "status": 404,
-  "connection": "Close",
-  "content_type": "application/json;charset=utf-8",
-  "date": "Fri, 19 Sep 2025 17:57:48 GMT",
-  "nimble_large_object": "false",
-  "transfer_encoding": "chunked",
-  "elapsed": 0,
-  "changed": false,
-  "json": {
-    "messages": [
-      {
-        "code": "SM_http_not_found",
-        "severity": "error",
-        "text": "Server has not found the requested object."
-      },
-      {
-        "code": "SM_no_method_for_URL_pattern",
-        "severity": "error",
-        "arguments": {
-          "method": "GET"
-        },
-        "text": "URL pattern in the request does not support HTTP method GET."
-      }
-    ]
+  "item": {
+    "activity": "Successfully created snapshot of volumes associated with volume collection Snapshot-Diario2-Retencion-5dias schedule Diario-7-Ret-5",
+    "alarm_id": "",
+    "category": "volume",
+    "id": "180484a0114275be1e0000000000000000000019cc",
+    "name": "",
+    "scope": "-",
+    "severity": "info",
+    "summary": "Scheduled snapshot succeeded",
+    "target": "Snapshot-Diario2-Retencion-5dias",
+    "target_type": "protection_set",
+    "tenant_id": "2f0000000000000000000000000000000000000000",
+    "timestamp": 1756900800,
+    "type": 10322
   },
-  "msg": "Status code was 404 and not [200]: HTTP Error 404: OK",
-  "invocation": {
-    "module_args": {
-      "url": "https://10.151.41.60:5392/v1/volume",
-      "method": "GET",
-      "validate_certs": false,
-      "return_content": true,
-      "headers": {
-        "Accept": "application/json",
-        "X-Auth-Token": "0349247a6e0e811ad388ff579be6e0ac",
-        "Content-Type": "application/json"
-      },
-      "unsafe_writes": true,
-      "force": false,
-      "http_agent": "ansible-httpget",
-      "use_proxy": true,
-      "force_basic_auth": false,
-      "use_gssapi": false,
-      "body_format": "raw",
-      "follow_redirects": "safe",
-      "status_code": [
-        200
-      ],
-      "timeout": 30,
-      "remote_src": false,
-      "unredirected_headers": [],
-      "decompress": true,
-      "use_netrc": true,
-      "url_username": null,
-      "url_password": null,
-      "client_cert": null,
-      "client_key": null,
-      "dest": null,
-      "body": null,
-      "src": null,
-      "creates": null,
-      "removes": null,
-      "unix_socket": null,
-      "ca_path": null,
-      "ciphers": null,
-      "mode": null,
-      "owner": null,
-      "group": null,
-      "seuser": null,
-      "serole": null,
-      "selevel": null,
-      "setype": null,
-      "attributes": null
-    }
-  },
+  "_ansible_verbose_always": true,
   "_ansible_no_log": false,
-  "failed_when_result": true
+  "changed": false,
+  "ansible_loop_var": "item",
+  "_ansible_item_label": {
+    "activity": "Successfully created snapshot of volumes associated with volume collection Snapshot-Diario2-Retencion-5dias schedule Diario-7-Ret-5",
+    "alarm_id": "",
+    "category": "volume",
+    "id": "180484a0114275be1e0000000000000000000019cc",
+    "name": "",
+    "scope": "-",
+    "severity": "info",
+    "summary": "Scheduled snapshot succeeded",
+    "target": "Snapshot-Diario2-Retencion-5dias",
+    "target_type": "protection_set",
+    "tenant_id": "2f0000000000000000000000000000000000000000",
+    "timestamp": 1756900800,
+    "type": 10322
+  }
 }
