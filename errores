@@ -1,36 +1,17 @@
-{
-  "item": {
-    "activity": "Successfully created snapshot of volumes associated with volume collection Snapshot-Diario2-Retencion-5dias schedule Diario-7-Ret-5",
-    "alarm_id": "",
-    "category": "volume",
-    "id": "180484a0114275be1e0000000000000000000019cc",
-    "name": "",
-    "scope": "-",
-    "severity": "info",
-    "summary": "Scheduled snapshot succeeded",
-    "target": "Snapshot-Diario2-Retencion-5dias",
-    "target_type": "protection_set",
-    "tenant_id": "2f0000000000000000000000000000000000000000",
-    "timestamp": 1756900800,
-    "type": 10322
-  },
-  "_ansible_verbose_always": true,
-  "_ansible_no_log": false,
-  "changed": false,
-  "ansible_loop_var": "item",
-  "_ansible_item_label": {
-    "activity": "Successfully created snapshot of volumes associated with volume collection Snapshot-Diario2-Retencion-5dias schedule Diario-7-Ret-5",
-    "alarm_id": "",
-    "category": "volume",
-    "id": "180484a0114275be1e0000000000000000000019cc",
-    "name": "",
-    "scope": "-",
-    "severity": "info",
-    "summary": "Scheduled snapshot succeeded",
-    "target": "Snapshot-Diario2-Retencion-5dias",
-    "target_type": "protection_set",
-    "tenant_id": "2f0000000000000000000000000000000000000000",
-    "timestamp": 1756900800,
-    "type": 10322
-  }
+TASK [Mostrar metadata de la respuesta] ****************************************
+ok: [localhost] => {
+    "msg": "Status: 200\nCantidad total de volúmenes: 23\n¿Tiene paginación?: False\n"
+}
+
+TASK [Mostrar campos del primer volumen] ***************************************
+ok: [localhost] => {
+    "msg": "Campos disponibles: ['id', 'name']"
+}
+
+TASK [Mostrar ejemplo completo del primer volumen] *****************************
+ok: [localhost] => {
+    "volumes_response.json.data[0]": {
+        "id": "060484a0114275be1e000000000000000000000009",
+        "name": "pvc-2c8c9482-d796-4b4e-ba26-6adc0771498e"
+    }
 }
