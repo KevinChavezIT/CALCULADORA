@@ -4,8 +4,18 @@
   gather_facts: true
   vars:
     api_base_url: "https://10.151.41.60:5392"
+    api_base_url_2: "https://10.151.41.129:5392"
+
     auth_endpoint: "v1/tokens"
-    events_endpoint: "v1/events/detail"
+    volumes_endpoint: "v1/volumes"
+
+    temp_csv_path: "C:\\info_luns\\luns_Alletra.csv"
+    info_dir: "C:\\info_luns"
+    csv_file: "luns_Alletra.csv"
+
+    temp_csv_path_2: "C:\\info_luns_2\\luns_Alletra_2.csv"
+    info_dir_2: "C:\\info_luns_2"
+    csv_file_2: "luns_Alletra_2.csv"
 
   tasks:
 
@@ -25,7 +35,7 @@
           Content-Type: "application/json"
         body_format: json
         body: {
-          "data": {
+          data: {
             "username": "{{ LOGIN_USER }}",
             "password": "{{ LOGIN_PASS }}"
           }
@@ -33,17 +43,13 @@
       register: auth_response
       failed_when: auth_response.status != 201
 
-    - name: Extraer token de la respuesta
+    - name: Extraer token de la respuesta 1
       ansible.builtin.set_fact:
         auth_token: "{{ auth_response.json.data.session_token }}"
 
-    - name: Mostrar el token obtenido
-      ansible.builtin.debug:
-        msg: "Token de autenticación: {{ auth_token }}"
-
-    - name: Consultar eventos (sin filtros)
+    - name: Consultar información de volúmenes
       ansible.builtin.uri:
-        url: "{{ api_base_url }}/{{ events_endpoint }}"
+        url: "{{ api_base_url }}/{{ volumes_endpoint }}/detail"
         method: GET
         validate_certs: false
         return_content: true
@@ -51,37 +57,157 @@
           Accept: "application/json"
           X-Auth-Token: "{{ auth_token }}"
           Content-Type: "application/json"
-      register: events_response
-      failed_when: events_response.status != 200
+      register: volumes_response
+      failed_when: volumes_response.status != 200
 
-    - name: Mostrar información básica de eventos
-      ansible.builtin.debug:
-        msg: "Status: {{ events_response.status }}, Total eventos: {{ events_response.json.data | length }}"
+    - name: Construir contenido CSV de volúmenes
+      ansible.builtin.set_fact:
+        csv_content: |
+          name,size,online,offline_reason,total_usage_bytes,reserve,limit,exported,indisponibilidad,fecha
+          {% set fecha = ansible_date_time.date %}
+          {% for vol in volumes_response.json.data %}
+          {% set name = vol.get("name", "") %}
+          {% set size = vol.get("size", "") %}
+          {% set online = vol.get("online", "") %}
+          {% set offline_reason = vol.get("offline_reason", "") %}
+          {% set total_usage_bytes = vol.get("total_usage_bytes", "") %}
+          {% set reserve = vol.get("reserve", "") %}
+          {% set limit = vol.get("limit", "") %}
+          {% set full_name = vol.get("full_name", "") %}
+          {% set exported = full_name.rsplit(name, 1)[0] if name in full_name else '' %}
+          {% set indisponibilidad = '0' %}
+          {% set line = (
+            name ~ ',' ~ size ~ ',' ~ online ~ ',' ~ offline_reason ~ ',' ~ total_usage_bytes ~ ',' ~
+            reserve ~ ',' ~ limit ~ ',' ~ exported ~ ',' ~ indisponibilidad ~ ',' ~ fecha
+          ) %}
+          {{ line }}
+          {% endfor %}
 
-    - name: Consultar eventos filtrados por categoría 'volume'
+    - name: Guardar resultado
+      ansible.builtin.copy:
+        content: "{{ csv_content }}"
+        dest: "{{ temp_csv_path }}"
+        mode: '0644'
+        force: true
+
+    - name: Obtener token de autenticación
       ansible.builtin.uri:
-        url: "{{ api_base_url }}/{{ events_endpoint }}?category=volume"
+        url: "{{ api_base_url_2 }}/{{ auth_endpoint }}"
+        method: POST
+        validate_certs: false
+        return_content: true
+        headers:
+          Accept: "application/json"
+          Content-Type: "application/json"
+        body_format: json
+        body: {
+          data: {
+            "username": "{{ LOGIN_USER }}",
+            "password": "{{ LOGIN_PASS }}"
+          }
+        }
+      register: auth_response_2
+      failed_when: auth_response_2.status != 201
+
+    - name: Extraer token de la respuesta 2
+      ansible.builtin.set_fact:
+        auth_token_2: "{{ auth_response_2.json.data.session_token }}"
+
+    - name: Consultar información de volúmenes 2
+      ansible.builtin.uri:
+        url: "{{ api_base_url_2 }}/{{ volumes_endpoint }}/detail"
         method: GET
         validate_certs: false
         return_content: true
         headers:
           Accept: "application/json"
-          X-Auth-Token: "{{ auth_token }}"
+          X-Auth-Token: "{{ auth_token_2 }}"
           Content-Type: "application/json"
-      register: events_volume_response
-      failed_when: events_volume_response.status != 200
-      ignore_errors: true
+      register: volumes_response_2
+      failed_when: volumes_response_2.status != 200
 
-    - name: Mostrar eventos de volumen
-      ansible.builtin.debug:
-        msg: "Eventos de volumen: {{ events_volume_response.json.data | length }}"
-      when: events_volume_response.status == 200
+    - name: Construir contenido CSV de volúmenes
+      ansible.builtin.set_fact:
+        csv_content_2: |
+          name,size,online,offline_reason,total_usage_bytes,reserve,limit,exported,indisponibilidad,fecha
+          {% set fecha = ansible_date_time.date %}
+          {% for vol in volumes_response_2.json.data %}
+          {% set name = vol.get("name", "") %}
+          {% set size = vol.get("size", "") %}
+          {% set online = vol.get("online", "") %}
+          {% set offline_reason = vol.get("offline_reason", "") %}
+          {% set total_usage_bytes = vol.get("total_usage_bytes", "") %}
+          {% set reserve = vol.get("reserve", "") %}
+          {% set limit = vol.get("limit", "") %}
+          {% set full_name = vol.get("full_name", "") %}
+          {% set exported = full_name.rsplit(name, 1)[0] if name in full_name else '' %}
+          {% set indisponibilidad = '0' %}
+          {% set line = (
+            name ~ ',' ~ size ~ ',' ~ online ~ ',' ~ offline_reason ~ ',' ~ total_usage_bytes ~ ',' ~
+            reserve ~ ',' ~ limit ~ ',' ~ exported ~ ',' ~ indisponibilidad ~ ',' ~ fecha
+          ) %}
+          {{ line }}
+          {% endfor %}
 
-    - name: Mostrar estructura del primer evento de volumen
-      ansible.builtin.debug:
-        var: item
-      loop: "{{ events_volume_response.json.data[0:2] }}"
-      when: events_volume_response.status == 200
+    - name: Guardar resultado
+      ansible.builtin.copy:
+        content: "{{ csv_content_2 }}"
+        dest: "{{ temp_csv_path_2 }}"
+        mode: '0644'
+        force: true
+
+  post_tasks:
+    - name: Log end of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.post_task
+
+- name: Copiar CSV al servidor Windows destino
+  hosts: server_save_reportes
+  gather_facts: false
+  vars:
+    info_dir: "C:\\info_luns"
+    temp_csv_path: "C:\\info_luns\\luns_Alletra.csv"
+    csv_file: "luns_Alletra.csv"
+
+    temp_csv_path_2: "C:\\info_luns_2\\luns_Alletra_2.csv"
+    info_dir_2: "C:\\info_luns_2"
+    csv_file_2: "luns_Alletra_2.csv"
+
+    timestamp: "{{ timestamp_result.stdout | trim }}"
+
+  tasks:
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Obtener timestamp desde PowerShell
+      ansible.windows.win_shell: |
+        Get-Date -Format "yyyy-MM-dd_HHmmss"
+      register: timestamp_result
+
+    - name: Definir nombre de archivo con timestamp
+      ansible.builtin.set_fact:
+        timestamp: "{{ timestamp_result.stdout | trim }}"
+        csv_file: "luns_Alletra_{{ timestamp }}.csv"
+        temp_csv_path: "C:\\info_luns\\{{ csv_file }}"
+
+    - name: Copiar archivo CSV desde controlador a servidor Windows
+      ansible.windows.win_copy:
+        src: "{{ temp_csv_path }}"
+        dest: "{{ info_dir }}\\{{ csv_file }}"
+
+    - name: Definir nombre de archivo con timestamp 2
+      ansible.builtin.set_fact:
+        timestamp: "{{ timestamp_result.stdout | trim }}"
+        csv_file_2: "luns_Alletra_2_{{ timestamp }}.csv"
+        temp_csv_path_2: "C:\\info_luns_2\\{{ csv_file_2 }}"
+
+    - name: Copiar archivo CSV desde controlador a servidor Windows 2
+      ansible.windows.win_copy:
+        src: "{{ temp_csv_path_2 }}"
+        dest: "{{ info_dir_2 }}\\{{ csv_file_2 }}"
 
   post_tasks:
     - name: Log end of playbook execution
