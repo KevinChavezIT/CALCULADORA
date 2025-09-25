@@ -1,17 +1,2 @@
-{
-  "module_stdout": "",
-  "module_stderr": "Exception calling \"Create\" with \"1\" argument(s): \"At line:4 char:21\r\n+ def _ansiballz_main():\r\n+                     ~\r\nAn expression was expected after '('.\r\nAt line:8 char:19\r\n+         os.getcwd()\r\n+                   ~\r\nAn expression was expected after '('.\r\nAt line:20 char:27\r\n+     except (AttributeError, OSError):\r\n+                           ~\r\nMissing argument in parameter list.\r\nAt line:22 char:29\r\n+     excludes = set(('', '.', scriptdir))\r\n+                             ~\r\nMissing expression after ','.\r\nAt line:22 char:30\r\n+     excludes = set(('', '.', scriptdir))\r\n+                              ~~~~~~~~~\r\nUnexpected token 'scriptdir' in expression or statement.\r\nAt line:22 char:29\r\n+     excludes = set(('', '.', scriptdir))\r\n+                             ~\r\nMissing closing ')' in expression.\r\nAt line:22 char:39\r\n+     excludes = set(('', '.', scriptdir))\r\n+                                       ~\r\nUnexpected token ')' in expression or statement.\r\nAt line:22 char:40\r\n+     excludes = set(('', '.', scriptdir))\r\n+                                        ~\r\nUnexpected token ')' in expression or statement.\r\nAt line:29 char:7\r\n+     if sys.version_info < (3,):\r\n+       ~\r\nMissing '(' after 'if' in if statement.\r\nAt line:29 char:30\r\n+     if sys.version_info < (3,):\r\n+                              ~\r\nMissing expression after ','.\r\nNot all parse errors were reported.  Correct the reported errors and try again.\"\r\nAt line:10 char:1\r\n+ $exec_wrapper = [ScriptBlock]::Create($split_parts[0])\r\n+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException\r\n    + FullyQualifiedErrorId : ParseException\r\n \r\nThe expression after '&' in a pipeline element produced an object that was not valid. It must result in a command \r\nname, a script block, or a CommandInfo object.\r\nAt line:11 char:2\r\n+ &$exec_wrapper\r\n+  ~~~~~~~~~~~~~\r\n    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException\r\n    + FullyQualifiedErrorId : BadExpression\r\n ",
-  "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error",
-  "rc": 1,
-  "ansible_facts": {
-    "discovered_interpreter_python": "/usr/bin/python"
-  },
-  "warnings": [
-    "No python interpreters found for host PRECWDB024 (tried ['python3.11', 'python3.10', 'python3.9', 'python3.8', 'python3.7', 'python3.6', 'python3.5', '/usr/bin/python3', '/usr/libexec/platform-python', 'python2.7', '/usr/bin/python', 'python'])"
-  ],
-  "_ansible_no_log": false,
-  "changed": false,
-  "item": "luns_SpectrumIBM.csv",
-  "ansible_loop_var": "item",
-  "_ansible_item_label": "luns_SpectrumIBM.csv"
-}
+syntax-check[unknown-module]: couldn't resolve module/action 'win_fetch'. This often indicates a misspelling, missing collection, or incorrect module path.
+main_luns.yml:36:7
