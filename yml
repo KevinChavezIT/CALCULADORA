@@ -1,5 +1,5 @@
 ---
-- name: Obtener token y LUNs
+- name: Obtener token y LUNs alletra
   hosts: localhost
   gather_facts: true
   vars:
@@ -13,8 +13,7 @@
     info_dir: "C:\\info_luns"
     csv_file: "luns_Alletra.csv"
 
-    temp_csv_path_2: "C:\\info_luns_2\\luns_Alletra_2.csv"
-    info_dir_2: "C:\\info_luns_2"
+    temp_csv_path_2: "C:\\info_luns\\luns_Alletra_2.csv"
     csv_file_2: "luns_Alletra_2.csv"
 
   tasks:
@@ -162,15 +161,14 @@
         name: pichincha.sre.post_task
 
 - name: Copiar CSV al servidor Windows destino
-  hosts: server_save_reportes
+  hosts: server_save_xlsx
   gather_facts: false
   vars:
     info_dir: "C:\\info_luns"
     temp_csv_path: "C:\\info_luns\\luns_Alletra.csv"
     csv_file: "luns_Alletra.csv"
 
-    temp_csv_path_2: "C:\\info_luns_2\\luns_Alletra_2.csv"
-    info_dir_2: "C:\\info_luns_2"
+    temp_csv_path_2: "C:\\info_luns\\luns_Alletra_2.csv"
     csv_file_2: "luns_Alletra_2.csv"
 
     timestamp: "{{ timestamp_result.stdout | trim }}"
@@ -202,12 +200,228 @@
       ansible.builtin.set_fact:
         timestamp: "{{ timestamp_result.stdout | trim }}"
         csv_file_2: "luns_Alletra_2_{{ timestamp }}.csv"
-        temp_csv_path_2: "C:\\info_luns_2\\{{ csv_file_2 }}"
+        temp_csv_path_2: "C:\\info_luns\\{{ csv_file_2 }}"
 
     - name: Copiar archivo CSV desde controlador a servidor Windows 2
       ansible.windows.win_copy:
         src: "{{ temp_csv_path_2 }}"
-        dest: "{{ info_dir_2 }}\\{{ csv_file_2 }}"
+        dest: "{{ info_dir }}\\{{ csv_file_2 }}"
+
+  post_tasks:
+    - name: Log end of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.post_task
+
+- name: Obtener LUNs desde Active IQ Unified Manager
+  hosts: localhost
+  gather_facts: true
+  vars:
+    info_dir: "C:\\info_luns"
+    csv_file: "luns_NetApp.csv"
+    temp_csv_path: "C:\\info_luns\\luns_NetApp.csv"
+
+  tasks:
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Consultar todas las LUNs
+      ansible.builtin.uri:
+        url: https://10.70.89.21/api/datacenter/storage/luns
+        method: GET
+        user: "{{ LOGIN_USER }}"
+        password: "{{ LOGIN_PASS }}"
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        headers:
+          Accept: "application/json"
+      register: luns_response
+
+    - name: Construir contenido CSV
+      ansible.builtin.set_fact:
+        csv_content: |
+          Name,fecha,Storage VM,Status,Volume,Size,Used size,LUN format,Mapped to initiators,Node name,IOPS,Latency,Throughput
+          {% set today = ansible_date_time.date %}
+          {% for lun in luns_response.json.records %}
+          {% set name = lun.name.split('/')[-1] | default('') %}
+          {% set svm = lun.svm.name | default('') %}
+          {% set status = lun.status.state | default('') %}
+          {% set volume = lun.location.volume.name | default('') %}
+          {% set size = (lun.space.size / 1073741824) | round(2) if lun.space.size is defined else '' %}
+          {% set used_size = (lun.space.used / 1073741824) | round(2) if lun.space.used is defined else '' %}
+          {% set lun_format = lun.os_type | default('') %}
+          {% set mapped_to = lun.status.mapped %}
+          {% set node_name = '' %}
+          {% set iops = '' %}
+          {% set latency = '' %}
+          {% set throughput = '' %}
+          {% set line = (
+            name ~ ',' ~ today ~ ',' ~ svm ~ ',' ~ status ~ ',' ~ volume ~ ',' ~
+            size ~ ',' ~ used_size ~ ',' ~ lun_format ~ ',' ~ mapped_to ~ ',' ~
+            node_name ~ ',' ~ iops ~ ',' ~ latency ~ ',' ~ throughput
+          ) %}
+          {{ line }}
+          {% endfor %}
+
+    - name: Guardar resultado
+      ansible.builtin.copy:
+        content: "{{ csv_content }}"
+        dest: "{{ temp_csv_path }}"
+        mode: '0644'
+        force: true
+
+  post_tasks:
+    - name: Log end of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.post_task
+
+- name: Copiar CSV al servidor Windows destino
+  hosts: server_save_xlsx
+  gather_facts: false
+  vars:
+    info_dir: "C:\\info_luns"
+    temp_csv_path: "C:\\info_luns\\luns_NetApp.csv"
+    csv_file: "luns_NetApp.csv"
+    timestamp: "{{ timestamp_result.stdout | trim }}"
+
+  tasks:
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Obtener timestamp desde PowerShell
+      ansible.windows.win_shell: |
+        Get-Date -Format "yyyy-MM-dd_HHmmss"
+      register: timestamp_result
+
+    - name: Definir nombre de archivo con timestamp
+      ansible.builtin.set_fact:
+        timestamp: "{{ timestamp_result.stdout | trim }}"
+        csv_file: "luns_NetApp_{{ timestamp }}.csv"
+        temp_csv_path: "C:\\info_luns\\{{ csv_file }}"
+
+    - name: Copiar archivo CSV desde controlador a servidor Windows
+      ansible.windows.win_copy:
+        src: "{{ temp_csv_path }}"
+        dest: "{{ info_dir }}\\{{ csv_file }}"
+
+  post_tasks:
+    - name: Log end of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.post_task
+
+- name: Ejecutar script Python para login y consulta de LUNs
+  hosts: localhost
+  gather_facts: true
+  vars:
+    info_dir: "C:\\info_luns"
+    csv_file: "luns_SpectrumIBM.csv"
+    temp_csv_path: "C:\\info_luns\\luns_SpectrumIBM.csv"
+  tasks:
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Ejecutar script usando variables de entorno
+      ansible.builtin.shell:
+        cmd: python3 spectrum_login.py
+        executable: /bin/bash
+      environment:
+        LOGIN_USER: "{{ LOGIN_USER }}"
+        LOGIN_PASS: "{{ LOGIN_PASS }}"
+      changed_when: false
+
+    - name: Leer archivo JSON generado
+      ansible.builtin.slurp:
+        src: luns_response.json
+      register: luns_json_raw
+
+    - name: Decodificar contenido JSON
+      ansible.builtin.set_fact:
+        luns_data: "{{ luns_json_raw.content | b64decode | from_json }}"
+
+    - name: Mostrar contenido de luns_data
+      ansible.builtin.debug:
+        var: luns_data
+
+    - name: Verificar tipo y contenido de luns_data
+      ansible.builtin.debug:
+        msg: "Tipo: {{ luns_data | type_debug }}, Total LUNs: {{ luns_data | length }}"
+
+    - name: Construir contenido CSV
+      ansible.builtin.set_fact:
+        csv_content: |
+          Name,Id,extpool,cap,volgrp,HostGroups,MM_report,GM_report,sessions,Indisponibilidad,today
+          {% set today = ansible_date_time.date %}
+          {% for lun in luns_data %}
+          {% set name = lun.get("Name", "") %}
+          {% set id = lun.luns_data["ID"] %}
+          {% set extpool = lun.get("Pool", "") %}
+          {% set cap = lun.get("Capacity", "") %}
+          {% set volgrp = '' %}
+          {% set hostgroups = lun.get("Hosts", "") %}
+          {% set mm_report = '' %}
+          {% set gm_report = '' %}
+          {% set sessions = '' %}
+          {% set indisponibilidad = '0' %}
+          {% set line = (
+            name ~ ',' ~ id ~ ',' ~ extpool ~ ',' ~ cap ~ ',' ~ volgrp ~ ',' ~ hostgroups ~ ',' ~
+            mm_report ~ ',' ~ gm_report ~ ',' ~ sessions ~ ',' ~ indisponibilidad ~ ',' ~ today
+          ) %}
+          {{ line }}
+          {% endfor %}
+
+    - name: Guardar resultado
+      ansible.builtin.copy:
+        content: "{{ csv_content }}"
+        dest: "{{ temp_csv_path }}"
+        mode: '0644'
+        force: true
+
+  post_tasks:
+    - name: Log end of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.post_task
+
+
+- name: Copiar CSV al servidor Windows destino
+  hosts: server_save_xlsx
+  gather_facts: false
+  vars:
+    info_dir: "C:\\info_luns"
+    csv_file: "luns_SpectrumIBM.csv"
+    temp_csv_path: "C:\\info_luns\\luns_SpectrumIBM.csv"
+    timestamp: "{{ timestamp_result.stdout | trim }}"
+
+  tasks:
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Obtener timestamp desde PowerShell
+      ansible.windows.win_shell: |
+        Get-Date -Format "yyyy-MM-dd_HHmmss"
+      register: timestamp_result
+
+    - name: Definir nombre de archivo con timestamp
+      ansible.builtin.set_fact:
+        timestamp: "{{ timestamp_result.stdout | trim }}"
+        csv_file: "luns_SpectrumIBM_{{ timestamp }}.csv"
+        temp_csv_path: "C:\\info_luns\\{{ csv_file }}"
+
+    - name: Copiar archivo CSV desde controlador a servidor Windows
+      ansible.windows.win_copy:
+        src: "{{ temp_csv_path }}"
+        dest: "{{ info_dir }}\\{{ csv_file }}"
 
   post_tasks:
     - name: Log end of playbook execution
