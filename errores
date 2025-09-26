@@ -1,6 +1,2 @@
-No se puede obtener la propiedad SaveAs de la clase Workbook.
-At C:\Windows\Temp\consolidar_csv.ps1:47 char:1
-+ $workbook.SaveAs($excel_path)
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : OperationStopped: (:) [], COMException
-    + FullyQualifiedErrorId : System.Runtime.InteropServices.COMException
+syntax-check[specific]: conflicting action statements: set_fact, fail_msg
+main_luns.yml:34:7
