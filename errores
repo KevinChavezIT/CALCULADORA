@@ -1,4 +1,33 @@
-C:\Users\usrpwcki>py -c "import http.client; import ssl; import json; from datetime import datetime; from urllib.parse import urlencode; from os import getcwd; print('✓ Todas las dependencias básicas están disponibles')"
-✓ Todas las dependencias básicas están disponibles
+py -c "
+import http.client
+import ssl
+import json
 
-C:\Users\usrpwcki>
+def create_https_connection(host):
+    return http.client.HTTPSConnection(host, context=ssl._create_unverified_context())
+
+def get_token_from_csm(connection, username, password, host):
+    try:
+        headers = {'Accept-Language': 'en-US', 'Content-Type': 'application/x-www-form-urlencoded'}
+        payload = 'username={}&password={}'.format(username, password)
+        connection.request('POST', '/CSM/web/system/v1/tokens', payload, headers)
+        response = connection.getresponse()
+        json_token_response = json.loads(response.read().decode())
+        connection.close()
+        return json_token_response['token']
+    except Exception as error:
+        print(f'Error: {error}')
+        connection.close()
+        return None
+
+# Test de conexión y autenticación
+hostname_IP = '10.70.152.131'
+connection = create_https_connection(hostname_IP)
+token = get_token_from_csm(connection, 'operador', 'hgpANwHPk5q}g.Y', hostname_IP)
+
+if token:
+    print('✓ Autenticación exitosa - Token obtenido')
+    print(f'Token (primeros 20 chars): {token[:20]}...')
+else:
+    print('✗ Error en autenticación')
+"
