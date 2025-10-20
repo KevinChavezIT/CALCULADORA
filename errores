@@ -3,31 +3,38 @@ import http.client
 import ssl
 import json
 
-def create_https_connection(host):
-    return http.client.HTTPSConnection(host, context=ssl._create_unverified_context())
-
-def get_token_from_csm(connection, username, password, host):
+def test_connectivity():
+    hostname_IP = '10.70.152.131'
+    
+    print('Probando conectividad con CSM...')
+    print(f'Destino: {hostname_IP}:443')
+    
     try:
+        # Test 1: Conexión básica
+        connection = http.client.HTTPSConnection(hostname_IP, context=ssl._create_unverified_context(), timeout=10)
+        connection.request('GET', '/CSM/web/system/v1/tokens')
+        response = connection.getresponse()
+        print(f'✓ Conexión HTTP exitosa - Status: {response.status}')
+        connection.close()
+        
+        # Test 2: Autenticación rápida
+        connection = http.client.HTTPSConnection(hostname_IP, context=ssl._create_unverified_context(), timeout=10)
         headers = {'Accept-Language': 'en-US', 'Content-Type': 'application/x-www-form-urlencoded'}
-        payload = 'username={}&password={}'.format(username, password)
+        payload = 'username=operador&password=hgpANwHPk5q}g.Y'
         connection.request('POST', '/CSM/web/system/v1/tokens', payload, headers)
         response = connection.getresponse()
-        json_token_response = json.loads(response.read().decode())
+        
+        if response.status == 200:
+            data = response.read().decode()
+            json_response = json.loads(data)
+            print('✓ Autenticación CSM exitosa')
+        else:
+            print(f'✗ Error en autenticación - Status: {response.status}')
+            
         connection.close()
-        return json_token_response['token']
-    except Exception as error:
-        print(f'Error: {error}')
-        connection.close()
-        return None
+        
+    except Exception as e:
+        print(f'✗ Error de conectividad: {e}')
 
-# Test de conexión y autenticación
-hostname_IP = '10.70.152.131'
-connection = create_https_connection(hostname_IP)
-token = get_token_from_csm(connection, 'operador', 'hgpANwHPk5q}g.Y', hostname_IP)
-
-if token:
-    print('✓ Autenticación exitosa - Token obtenido')
-    print(f'Token (primeros 20 chars): {token[:20]}...')
-else:
-    print('✗ Error en autenticación')
+test_connectivity()
 "
