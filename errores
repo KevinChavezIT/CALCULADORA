@@ -1,1 +1,4 @@
-py -c "import http.client; import ssl; import json; from datetime import datetime; from urllib.parse import urlencode; from os import getcwd; print('✓ Todas las dependencias básicas están disponibles')"
+C:\Users\usrpwcki>py -c "import http.client; import ssl; import json; from datetime import datetime; from urllib.parse import urlencode; from os import getcwd; print('✓ Todas las dependencias básicas están disponibles')"
+✓ Todas las dependencias básicas están disponibles
+
+C:\Users\usrpwcki>
