@@ -1,1 +1,55 @@
+py -c "
+import os
+from os import getcwd
 
+print('Creando estructura de directorios Windows...')
+print(f'Directorio actual: {getcwd()}')
+
+# Rutas Windows para el script
+log_dir = 'C:/IBM/LOGS'
+log_file = 'C:/IBM/LOGS/SpectrumControlLOG.log'
+reports_dir = os.path.join(getcwd(), 'reports')
+
+print(f'\\nRutas Windows a crear:')
+print(f'1. Directorio logs: {log_dir}')
+print(f'2. Archivo log: {log_file}')
+print(f'3. Directorio reports: {reports_dir}')
+
+# Crear directorio de logs
+try:
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+        print(f'✓ Directorio logs creado: {log_dir}')
+    else:
+        print(f'✓ Directorio logs ya existe: {log_dir}')
+except Exception as e:
+    print(f'✗ Error creando directorio logs: {e}')
+
+# Crear directorio reports
+try:
+    if not os.path.exists(reports_dir):
+        os.makedirs(reports_dir)
+        print(f'✓ Directorio reports creado: {reports_dir}')
+    else:
+        print(f'✓ Directorio reports ya existe: {reports_dir}')
+except Exception as e:
+    print(f'✗ Error creando directorio reports: {e}')
+
+# Verificar permisos de escritura en logs
+try:
+    with open(log_file, 'a') as f:
+        f.write('Test de escritura - ' + str(os.getcwd()) + '\\n')
+    print('✓ Permisos de escritura OK en archivo log')
+except Exception as e:
+    print(f'✗ Sin permisos de escritura en log: {e}')
+
+# Verificar permisos de escritura en reports
+test_file = os.path.join(reports_dir, 'test_write.txt')
+try:
+    with open(test_file, 'w') as f:
+        f.write('test')
+    os.remove(test_file)
+    print('✓ Permisos de escritura OK en directorio reports')
+except Exception as e:
+    print(f'✗ Sin permisos de escritura en reports: {e}')
+"
