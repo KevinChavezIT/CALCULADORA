@@ -1,10 +1,7 @@
-# Ejecuta este comando para verificar que todas las librerías estén disponibles
-python -c "
-import http.client
-import ssl
-import json
-from datetime import datetime
-from urllib.parse import urlencode
-from os import getcwd
-print('✓ Todas las dependencias básicas están disponibles')
-"
+C:\Users\usrpwcki>py -c "import http.clientimport sslimport jsonfrom datetime import datetimefrom urllib.parse import urlencodefrom os import getcwdprint('✓ Todas las dependencias básicas están disponibles')"
+  File "<string>", line 1
+    import http.clientimport sslimport jsonfrom datetime import datetimefrom urllib.parse import urlencodefrom os import getcwdprint('✓ Todas las dependencias básicas están disponibles')
+                             ^^^^^^^^^
+SyntaxError: invalid syntax
+
+C:\Users\usrpwcki>
