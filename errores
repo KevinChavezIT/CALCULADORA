@@ -1,23 +1,10 @@
-Version      : 2.250.1
-Author       : Microsoft Corporation
-Help         : https://docs.microsoft.com/azure/devops/pipelines/tasks/utility/command-line
-==============================================================================
-Generating script.
-Script contents:
-python vm_template_generator.py
-========================== Starting Command Output ===========================
-/bin/bash --noprofile --norc /__w/_temp/88f470cb-0370-496a-ad68-31d1bf74124e.sh
-/__w/1/s
-/__w/1/s/tif-iac-hypervisors/terraform/0-dev/2_01_vm.tf
-Traceback (most recent call last):
-  File "/__w/1/s/iac-config/vm_template_generator.py", line 248, in <module>
-    main()
-  File "/__w/1/s/iac-config/vm_template_generator.py", line 201, in main
-    resource = render_template(
-  File "/__w/1/s/iac-config/vm_template_generator.py", line 128, in render_template
-    template_path = get_template_path(vm_os, vm_environment)
-  File "/__w/1/s/iac-config/vm_template_generator.py", line 64, in get_template_path
-    raise ValueError(f"No tf template exists for {vm_os} in {environment}.")
-ValueError: No tf template exists for TSEC in false.
-##[error]Bash exited with code '1'.
-Finishing: Python ejecucion
+# Ejecuta este comando para verificar que todas las librerías estén disponibles
+python -c "
+import http.client
+import ssl
+import json
+from datetime import datetime
+from urllib.parse import urlencode
+from os import getcwd
+print('✓ Todas las dependencias básicas están disponibles')
+"
