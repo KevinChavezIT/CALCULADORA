@@ -1,105 +1,75 @@
 import http.client
 import ssl
+import base64
 import json
-from datetime import datetime
-from urllib.parse import urlencode
+
+from datetime import datetime, timedelta
 
 
-def create_https_connection(host):
-    return http.client.HTTPSConnection(host, context = ssl._create_unverified_context())
+
+def create_https_connection(host, port ):
+    """
+    This method will create a connection object tha you can use to interact with CSM Hosts
+    """
+    return http.client.HTTPSConnection(host, port, context = ssl._create_unverified_context())
 
 
-def get_token_from_connection(host, connection, username, password):
+
+def get_brocade_chassis_info(connection, hostname_IP, sansw_name, auth):
     try:
-        headers = {'Content-type': 'application/json'}
+        headers = {
+            'Accept': 'application/yang-data+json',
+            'Authorization': f'Basic {auth}'
+        }
+        now = datetime.now().astimezone()  # Asegurarse de que 'now' tenga información de zona horaria
+        date_limit = now - timedelta(hours=1) # Tiempo en el que obtiene la data
 
-        body = {"request":{"params":{"username":"{}".format(username),"password":"{}".format(password)}}}
-        json_data = json.dumps(body)
-
-        connection.request("POST", "/api/v1/tokens", json_data, headers)
+        connection.request("GET", "/rest/running/brocade-logging/error-log", headers=headers)
         response = connection.getresponse()
-        json_token_response = json.loads(response.read().decode())["token"]["token"]
-        connection.close()
-
-        return json_token_response
-
+        if response.status == 200:  # Verificar que la solicitud fue exitosa (código de estado 200)
+            data = response.read().decode()
+            filtered_logs = []
+            if data:  # Verificar si la respuesta contiene datos
+                logs = json.loads(data)
+            if data:  # Verificar si la respuesta contiene datos
+                logs = json.loads(data)
+                for log in logs["Response"]["error-log"]:
+                    if log["severity-level"] in ["error", "warning", "critical"] and datetime.fromisoformat(log["time-stamp"]).astimezone() > date_limit:
+                        filtered_logs.append("{};{};{};{};{};{}".format(sansw_name, log["time-stamp"], log["severity-level"], log["switch-user-friendly-name"], log["fabric-id"], log["message-text"]))
+                connection.close()
+                return filtered_logs
+            else:
+                print("La respuesta del servidor no contiene datos JSON.")
+        else:
+            print("La solicitud no fue exitosa. Código de estado: {}".format(response.status))
     except Exception as error:
-        print("an error was raised trying to get token file {}".format(error))
-        write_events_to_file(get_date_time("%d-%m-%Y-%H:%M:%S"), "Connection Error", host,"an error was raised while trying to connecto to {} hmc".format(host))
+        error_message = "No es posible conectar con el sansw {}. Error: {}".format(sansw_name, error)
+        print(error_message)
+        write_events_to_file(error_message)
         connection.close()
 
 
-def get_events_from_stg(connection, token, severity, event_time):
+def write_events_to_file(filtered_logs):
     try:
-        header = {"Content-type":"application/json", "X-Auth-Token":"{}".format(token)}
-        baseurl="/api/v1/events?severity={}&before={}".format(severity, event_time)
-        connection.request("GET", baseurl, headers=header)
-
-        response = connection.getresponse()
-        print("Status: {} and reason: {}".format(response.status, response.reason))
-        json_events = json.loads(response.read().decode())
-
-        connection.close()
-
-        return json_events
-
-    except Exception as error:
-        print("an error was raised, closing http connection with error {}".format(error))
-        connection.close()
-
-
-def get_date_time(format_time):
-    now = datetime.now()
-    date_formated = now.strftime(format_time)
-    return str(date_formated)
-
-
-def write_events_to_file(format_time, alert_type, alerted_host, events_list):
-    if type(events_list) is list:
-        event_file = open("/opt/IBM/LOGS/SpectrumControlLOG.log", "a")  # append mode
-        if len(events_list) > 0:
-            for i in events_list:
-                if i["description"] == "":
-                    pass
-                else:
-                    event_file.write("{};{};{};{}\n".format(format_time, alert_type, alerted_host, i["description"]))
-
-        event_file.close()
-
-    else:
-        event_file = open("/opt/IBM/LOGS/SpectrumControlLOG.log", "a")  # append mode
-        event_file.write("{};{};{};{}\n".format(format_time, alert_type, alerted_host, events_list))
-        event_file.close()
-
-
-def execute_stg_mon(event_type):
-    storage_file = open("/opt/IBM/TPC/data/scripts/storage.conf")
-
-    for stg_list in storage_file:
-        stg_name = stg_list.split(",")[1]
-        stg_ip = stg_list.split(",")[2]
-        stg_user = stg_list.split(",")[3]
-        stg_passwd = stg_list.split(",")[4]
-
-        connection = create_https_connection(stg_ip)
-        token = get_token_from_connection(stg_name, connection,stg_user,stg_passwd)
-        #17-06-2023-06:39:10
-        events_list = []
-        try:
-            json_events = get_events_from_stg(connection, token, event_type, get_date_time("%Y-%m-%dT%H:%M:%S-0700"))
-
-            for item in json_events["data"]["events"]:
-                event_details = {"description":None}
-                event_details['description'] = item['description']
-                events_list.append(event_details)
-
-            write_events_to_file(get_date_time("%d-%m-%Y-%H:%M:%S"), "DS GUI event", stg_name, events_list)
-        except Exception as error:
-            print("an error ocured trying to parse json object: {}".format(error))
+        #event_file = open("/opt/IBM/LOGS/sansw_monitor.log", "a")
+        if filtered_logs != "":
+            event_file = open("C:/IBM/LOGS/sansw_monitor.log", "a")
+            for line in filtered_logs:
+                event_file.write("{}\n".format(line))
+            event_file.close()
+    except Exception as e:
+        event_file.write("No se puede escribir el log debido al error: {}".format(e))
 
 
 if __name__ == '__main__':
-    execute_stg_mon("warning")
-    execute_stg_mon("error")
-
+    username = 'monbrocade'
+    password = 'monbrocade2025*'
+    auth = base64.b64encode(f'{username}:{password}'.encode()).decode()
+    list_of_hosts = ['10.70.89.82', 'sansw_bp53'], ['10.70.89.86', 'sansw_bp54'], ['10.70.89.85', 'sansw_bp61'], ['10.70.89.89', 'sansw_bp62'], ['172.26.8.96', 'sansw_bp153'], ['172.26.8.100', 'sansw_bp154'], ['172.26.8.99', 'sansw_bp161'], ['172.26.8.103', 'sansw_bp162'],
+    #list_of_hosts = ['10.70.89.82', 'sansw_bp53'], ['10.70.89.86', 'sansw_bp54'], ['10.70.89.85', 'sansw_bp61'], ['10.70.89.89', 'sansw_bp62']
+    for i in list_of_hosts:
+        hostname_IP = '{}'.format(i[0])
+        connection = create_https_connection(hostname_IP, 443)
+        filtered_logs = get_brocade_chassis_info(connection, hostname_IP, i[1], auth)
+        write_events_to_file(filtered_logs)
 
