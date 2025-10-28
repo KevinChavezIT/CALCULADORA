@@ -1,27 +1,23 @@
-- name: Contar LUNs únicos por Name para Prod1
+- name: Calcular todas las métricas para Prod1
   ansible.builtin.set_fact:
-    total_luns_prod1: "{{ luns_por_equipo.Prod1 | selectattr('Name', 'defined') | selectattr('Name', 'ne', '') | map(attribute='Name') | unique | list | length }}"
+    metrics_prod1:
+      total_luns: "{{ total_luns_prod1 }}"
+      fecha_corte: "{{ ansible_date_time.date }}"
+      dia_del_mes: "{{ ansible_date_time.date.split('-')[2] | int }}"
+      dise_min: "{{ (24 * 60 * ansible_date_time.date.split('-')[2] | int) | int }}"
+      indis_min: 0
+      disr_min: "{{ (24 * 60 * ansible_date_time.date.split('-')[2] | int) | int }}"
+      disponibilidad_esperada: "{{ (24 * 60 * ansible_date_time.date.split('-')[2] | int * total_luns_prod1) | int }}"
+      disponibilidad_real: 100.0
 
-- name: Debug - Mostrar conteo real
-  ansible.builtin.debug:
-    msg: "Total LUNs Prod1 (por Name): {{ total_luns_prod1 }}"
-
-- name: Construir CSV para Prod1
+- name: Construir CSV para Prod1 (versión simplificada)
   ansible.builtin.set_fact:
     csv_prod1: |
       Estado
       Mediciones Mensuales
       Total LUNs,Disponibilidad Esperada(min),Disponibilidad Real(%)
-      {% set total_luns = total_luns_prod1 | int %}
-      {% set fecha_corte = ansible_date_time.date %}
-      {% set dia_del_mes = fecha_corte.split('-')[2] | int %}
-      {% set dise_min = (24 * 60 * dia_del_mes) | int %}
-      {% set indis_min = 0 | int %}
-      {% set disr_min = dise_min - indis_min %}
-      {% set disponibilidad_esperada = (dise_min * total_luns) | int %}
-      {% set disponibilidad_real = (((disr_min * total_luns) / disponibilidad_esperada) * 100) if disponibilidad_esperada > 0 else 100 %}
-      {{ total_luns }},{{ disponibilidad_esperada }},{{ disponibilidad_real | round(2) }}
+      {{ metrics_prod1.total_luns }},{{ metrics_prod1.disponibilidad_esperada }},{{ metrics_prod1.disponibilidad_real }}
       Name,HostGroups,Fecha Corte,Dia del Mes,DISE(min),INDIS(min),DISR(min)
       {% for lun in luns_por_equipo.Prod1 %}
-      {{ lun.Name }},{{ lun.Hosts }},{{ fecha_corte }},{{ dia_del_mes }},{{ dise_min }},{{ indis_min }},{{ disr_min }}
+      {{ lun.Name }},{{ lun.Hosts }},{{ metrics_prod1.fecha_corte }},{{ metrics_prod1.dia_del_mes }},{{ metrics_prod1.dise_min }},{{ metrics_prod1.indis_min }},{{ metrics_prod1.disr_min }}
       {% endfor %}
