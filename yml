@@ -1,435 +1,55 @@
-playbook 1
 ---
-- name: Obtener token y LUNs
-  hosts: localhost
-  gather_facts: true
+- name: Test de conexión a servidores AIX VIOs - Corregido
+  hosts: vios
+  gather_facts: no
+  
+  # Configuración específica para AIX
   vars:
-    api_base_url: "https://10.151.41.60:5392"
-    api_base_url_2: "https://10.151.41.129:5392"
-
-    auth_endpoint: "v1/tokens"
-    volumes_endpoint: "v1/volumes"
-
-    temp_csv_path: "C:\\info_luns\\luns_Alletra.csv"
-    info_dir: "C:\\info_luns"
-    csv_file: "luns_Alletra.csv"
-
-    temp_csv_path_2: "C:\\info_luns\\luns_Alletra_2.csv"
-    csv_file_2: "luns_Alletra_2.csv"
-
+    ansible_shell_type: sh  # Usar sh en lugar de ksh
+    ansible_executable: /usr/bin/ksh  # Especificar ejecutable de shell
+  
   tasks:
-
-  pre_tasks:
-    - name: Log start of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.pre_task
-
-    - name: Obtener token de autenticación
-      ansible.builtin.uri:
-        url: "{{ api_base_url }}/{{ auth_endpoint }}"
-        method: POST
-        validate_certs: false
-        return_content: true
-        headers:
-          Accept: "application/json"
-          Content-Type: "application/json"
-        body_format: json
-        body: {
-          data: {
-            "username": "{{ LOGIN_USER }}",
-            "password": "{{ LOGIN_PASS }}"
-          }
-        }
-      register: auth_response
-      failed_when: auth_response.status != 201
-
-    - name: Extraer token de la respuesta 1
-      ansible.builtin.set_fact:
-        auth_token: "{{ auth_response.json.data.session_token }}"
-
-    - name: Consultar información de volúmenes
-      ansible.builtin.uri:
-        url: "{{ api_base_url }}/{{ volumes_endpoint }}/detail"
-        method: GET
-        validate_certs: false
-        return_content: true
-        headers:
-          Accept: "application/json"
-          X-Auth-Token: "{{ auth_token }}"
-          Content-Type: "application/json"
-      register: volumes_response
-      failed_when: volumes_response.status != 200
-
-    - name: Construir contenido CSV de volúmenes
-      ansible.builtin.set_fact:
-        csv_content: |
-          name,size,online,offline_reason,total_usage_bytes,reserve,limit,exported,indisponibilidad,fecha
-          {% set fecha = ansible_date_time.date %}
-          {% for vol in volumes_response.json.data %}
-          {% set name = vol.get("name", "") %}
-          {% set size = vol.get("size", "") %}
-          {% set online = vol.get("online", "") %}
-          {% set offline_reason = vol.get("offline_reason", "") %}
-          {% set total_usage_bytes = vol.get("total_usage_bytes", "") %}
-          {% set reserve = vol.get("reserve", "") %}
-          {% set limit = vol.get("limit", "") %}
-          {% set full_name = vol.get("full_name", "") %}
-          {% set exported = full_name.rsplit(name, 1)[0] if name in full_name else '' %}
-          {% set indisponibilidad = '0' %}
-          {% set line = (
-            name ~ ',' ~ size ~ ',' ~ online ~ ',' ~ offline_reason ~ ',' ~ total_usage_bytes ~ ',' ~
-            reserve ~ ',' ~ limit ~ ',' ~ exported ~ ',' ~ indisponibilidad ~ ',' ~ fecha
-          ) %}
-          {{ line }}
-          {% endfor %}
-
-    - name: Guardar resultado
-      ansible.builtin.copy:
-        content: "{{ csv_content }}"
-        dest: "{{ temp_csv_path }}"
-        mode: '0644'
-        force: true
-
-    - name: Obtener token de autenticación
-      ansible.builtin.uri:
-        url: "{{ api_base_url_2 }}/{{ auth_endpoint }}"
-        method: POST
-        validate_certs: false
-        return_content: true
-        headers:
-          Accept: "application/json"
-          Content-Type: "application/json"
-        body_format: json
-        body: {
-          data: {
-            "username": "{{ LOGIN_USER }}",
-            "password": "{{ LOGIN_PASS }}"
-          }
-        }
-      register: auth_response_2
-      failed_when: auth_response_2.status != 201
-
-    - name: Extraer token de la respuesta 2
-      ansible.builtin.set_fact:
-        auth_token_2: "{{ auth_response_2.json.data.session_token }}"
-
-    - name: Consultar información de volúmenes 2
-      ansible.builtin.uri:
-        url: "{{ api_base_url_2 }}/{{ volumes_endpoint }}/detail"
-        method: GET
-        validate_certs: false
-        return_content: true
-        headers:
-          Accept: "application/json"
-          X-Auth-Token: "{{ auth_token_2 }}"
-          Content-Type: "application/json"
-      register: volumes_response_2
-      failed_when: volumes_response_2.status != 200
-
-    - name: Construir contenido CSV de volúmenes
-      ansible.builtin.set_fact:
-        csv_content_2: |
-          name,size,online,offline_reason,total_usage_bytes,reserve,limit,exported,indisponibilidad,fecha
-          {% set fecha = ansible_date_time.date %}
-          {% for vol in volumes_response_2.json.data %}
-          {% set name = vol.get("name", "") %}
-          {% set size = vol.get("size", "") %}
-          {% set online = vol.get("online", "") %}
-          {% set offline_reason = vol.get("offline_reason", "") %}
-          {% set total_usage_bytes = vol.get("total_usage_bytes", "") %}
-          {% set reserve = vol.get("reserve", "") %}
-          {% set limit = vol.get("limit", "") %}
-          {% set full_name = vol.get("full_name", "") %}
-          {% set exported = full_name.rsplit(name, 1)[0] if name in full_name else '' %}
-          {% set indisponibilidad = '0' %}
-          {% set line = (
-            name ~ ',' ~ size ~ ',' ~ online ~ ',' ~ offline_reason ~ ',' ~ total_usage_bytes ~ ',' ~
-            reserve ~ ',' ~ limit ~ ',' ~ exported ~ ',' ~ indisponibilidad ~ ',' ~ fecha
-          ) %}
-          {{ line }}
-          {% endfor %}
-
-    - name: Guardar resultado
-      ansible.builtin.copy:
-        content: "{{ csv_content_2 }}"
-        dest: "{{ temp_csv_path_2 }}"
-        mode: '0644'
-        force: true
-
-  post_tasks:
-    - name: Log end of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.post_task
-
-- name: Copiar CSV al servidor Windows destino
-  hosts: server_save_xlsx
-  gather_facts: false
-  vars:
-    info_dir: "C:\\info_luns"
-    temp_csv_path: "C:\\info_luns\\luns_Alletra.csv"
-    csv_file: "luns_Alletra.csv"
-
-    temp_csv_path_2: "C:\\info_luns\\luns_Alletra_2.csv"
-    csv_file_2: "luns_Alletra_2.csv"
-
-    timestamp: "{{ timestamp_result.stdout | trim }}"
-
-  tasks:
-
-  pre_tasks:
-    - name: Log start of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.pre_task
-
-    - name: Obtener timestamp desde PowerShell
-      ansible.windows.win_shell: |
-        Get-Date -Format "yyyy-MM-dd_HHmmss"
-      register: timestamp_result
-
-    - name: Definir nombre de archivo con timestamp
-      ansible.builtin.set_fact:
-        timestamp: "{{ timestamp_result.stdout | trim }}"
-        csv_file: "luns_Alletra_{{ timestamp }}.csv"
-        temp_csv_path: "C:\\info_luns\\{{ csv_file }}"
-
-    - name: Copiar archivo CSV desde controlador a servidor Windows
-      ansible.windows.win_copy:
-        src: "{{ temp_csv_path }}"
-        dest: "{{ info_dir }}\\{{ csv_file }}"
-
-    - name: Definir nombre de archivo con timestamp 2
-      ansible.builtin.set_fact:
-        timestamp: "{{ timestamp_result.stdout | trim }}"
-        csv_file_2: "luns_Alletra_2_{{ timestamp }}.csv"
-        temp_csv_path_2: "C:\\info_luns\\{{ csv_file_2 }}"
-
-    - name: Copiar archivo CSV desde controlador a servidor Windows 2
-      ansible.windows.win_copy:
-        src: "{{ temp_csv_path_2 }}"
-        dest: "{{ info_dir }}\\{{ csv_file_2 }}"
-
-  post_tasks:
-    - name: Log end of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.post_task
-
-
-playbook 2
----
-- name: Obtener LUNs desde Active IQ Unified Manager
-  hosts: localhost
-  gather_facts: true
-  vars:
-    info_dir: "C:\\info_luns"
-    csv_file: "luns_NetApp.csv"
-    temp_csv_path: "C:\\info_luns\\luns_NetApp.csv"
-
-  tasks:
-
-  pre_tasks:
-    - name: Log start of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.pre_task
-
-    - name: Consultar todas las LUNs
-      ansible.builtin.uri:
-        url: https://10.70.89.21/api/datacenter/storage/luns
-        method: GET
-        user: "{{ LOGIN_USER }}"
-        password: "{{ LOGIN_PASS }}"
-        force_basic_auth: true
-        validate_certs: false
-        return_content: true
-        headers:
-          Accept: "application/json"
-      register: luns_response
-
-    - name: Construir contenido CSV
-      ansible.builtin.set_fact:
-        csv_content: |
-          Name,fecha,Storage VM,Status,Volume,Size,Used size,LUN format,Mapped to initiators,Node name,IOPS,Latency,Throughput
-          {% set today = ansible_date_time.date %}
-          {% for lun in luns_response.json.records %}
-          {% set name = lun.name.split('/')[-1] | default('') %}
-          {% set svm = lun.svm.name | default('') %}
-          {% set status = lun.status.state | default('') %}
-          {% set volume = lun.location.volume.name | default('') %}
-          {% set size = (lun.space.size / 1073741824) | round(2) if lun.space.size is defined else '' %}
-          {% set used_size = (lun.space.used / 1073741824) | round(2) if lun.space.used is defined else '' %}
-          {% set lun_format = lun.os_type | default('') %}
-          {% set mapped_to = lun.status.mapped %}
-          {% set node_name = '' %}
-          {% set iops = '' %}
-          {% set latency = '' %}
-          {% set throughput = '' %}
-          {% set line = (
-            name ~ ',' ~ today ~ ',' ~ svm ~ ',' ~ status ~ ',' ~ volume ~ ',' ~
-            size ~ ',' ~ used_size ~ ',' ~ lun_format ~ ',' ~ mapped_to ~ ',' ~
-            node_name ~ ',' ~ iops ~ ',' ~ latency ~ ',' ~ throughput
-          ) %}
-          {{ line }}
-          {% endfor %}
-
-    - name: Guardar resultado
-      ansible.builtin.copy:
-        content: "{{ csv_content }}"
-        dest: "{{ temp_csv_path }}"
-        mode: '0644'
-        force: true
-
-  post_tasks:
-    - name: Log end of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.post_task
-
-- name: Copiar CSV al servidor Windows destino
-  hosts: server_save_xlsx
-  gather_facts: false
-  vars:
-    info_dir: "C:\\info_luns"
-    temp_csv_path: "C:\\info_luns\\luns_NetApp.csv"
-    csv_file: "luns_NetApp.csv"
-    timestamp: "{{ timestamp_result.stdout | trim }}"
-
-  tasks:
-
-  pre_tasks:
-    - name: Log start of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.pre_task
-
-    - name: Obtener timestamp desde PowerShell
-      ansible.windows.win_shell: |
-        Get-Date -Format "yyyy-MM-dd_HHmmss"
-      register: timestamp_result
-
-    - name: Definir nombre de archivo con timestamp
-      ansible.builtin.set_fact:
-        timestamp: "{{ timestamp_result.stdout | trim }}"
-        csv_file: "luns_NetApp_{{ timestamp }}.csv"
-        temp_csv_path: "C:\\info_luns\\{{ csv_file }}"
-
-    - name: Copiar archivo CSV desde controlador a servidor Windows
-      ansible.windows.win_copy:
-        src: "{{ temp_csv_path }}"
-        dest: "{{ info_dir }}\\{{ csv_file }}"
-
-  post_tasks:
-    - name: Log end of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.post_task
-
-playbook 3
----
-- name: Ejecutar script Python para login y consulta de LUNs
-  hosts: localhost
-  gather_facts: true
-  vars:
-    info_dir: "C:\\info_luns"
-    csv_file: "luns_SpectrumIBM.csv"
-    temp_csv_path: "C:\\info_luns\\luns_SpectrumIBM.csv"
-  tasks:
-
-  pre_tasks:
-    - name: Log start of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.pre_task
-
-    - name: Ejecutar script usando variables de entorno
-      ansible.builtin.shell:
-        cmd: python3 spectrum_login.py
-        executable: /bin/bash
-      environment:
-        LOGIN_USER: "{{ LOGIN_USER }}"
-        LOGIN_PASS: "{{ LOGIN_PASS }}"
-      changed_when: false
-
-    - name: Leer archivo JSON generado
-      ansible.builtin.slurp:
-        src: luns_response.json
-      register: luns_json_raw
-
-    - name: Decodificar contenido JSON
-      ansible.builtin.set_fact:
-        luns_data: "{{ luns_json_raw.content | b64decode | from_json }}"
-
-    - name: Mostrar contenido de luns_data
+    - name: Verificar si existe /usr/bin/ksh
+      ansible.builtin.command:
+        cmd: "ls -la /usr/bin/ksh"
+      register: ksh_check
+      ignore_errors: yes
+      delegate_to: localhost  # Ejecutar localmente para debug
+    
+    - name: Debug - Mostrar resultado de verificación ksh
       ansible.builtin.debug:
-        var: luns_data
-
-    - name: Verificar tipo y contenido de luns_data
+        var: ksh_check
+      delegate_to: localhost
+    
+    - name: Probar conexión con shell por defecto del sistema
+      ansible.builtin.raw: |
+        echo "Conectado exitosamente a $(hostname)"
+        echo "Shell actual: $SHELL"
+        echo "Usuario: $(whoami)"
+      register: raw_test
+      
+    - name: Mostrar resultado conexión raw
       ansible.builtin.debug:
-        msg: "Tipo: {{ luns_data | type_debug }}, Total LUNs: {{ luns_data | length }}"
-
-    - name: Construir contenido CSV
-      ansible.builtin.set_fact:
-        csv_content: |
-          Name,Id,extpool,cap,volgrp,HostGroups,MM_report,GM_report,sessions,Indisponibilidad,today
-          {% set today = ansible_date_time.date %}
-          {% for lun in luns_data %}
-          {% set name = lun.get("Name", "") %}
-          {% set id = lun.luns_data["ID"] %}
-          {% set extpool = lun.get("Pool", "") %}
-          {% set cap = lun.get("Capacity", "") %}
-          {% set volgrp = '' %}
-          {% set hostgroups = lun.get("Hosts", "") %}
-          {% set mm_report = '' %}
-          {% set gm_report = '' %}
-          {% set sessions = '' %}
-          {% set indisponibilidad = '0' %}
-          {% set line = (
-            name ~ ',' ~ id ~ ',' ~ extpool ~ ',' ~ cap ~ ',' ~ volgrp ~ ',' ~ hostgroups ~ ',' ~
-            mm_report ~ ',' ~ gm_report ~ ',' ~ sessions ~ ',' ~ indisponibilidad ~ ',' ~ today
-          ) %}
-          {{ line }}
-          {% endfor %}
-
-    - name: Guardar resultado
-      ansible.builtin.copy:
-        content: "{{ csv_content }}"
-        dest: "{{ temp_csv_path }}"
-        mode: '0644'
-        force: true
-
-  post_tasks:
-    - name: Log end of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.post_task
-
-
-- name: Copiar CSV al servidor Windows destino
-  hosts: server_save_xlsx
-  gather_facts: false
-  vars:
-    info_dir: "C:\\info_luns"
-    csv_file: "luns_SpectrumIBM.csv"
-    temp_csv_path: "C:\\info_luns\\luns_SpectrumIBM.csv"
-    timestamp: "{{ timestamp_result.stdout | trim }}"
-
-  tasks:
-
-  pre_tasks:
-    - name: Log start of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.pre_task
-
-    - name: Obtener timestamp desde PowerShell
-      ansible.windows.win_shell: |
-        Get-Date -Format "yyyy-MM-dd_HHmmss"
-      register: timestamp_result
-
-    - name: Definir nombre de archivo con timestamp
-      ansible.builtin.set_fact:
-        timestamp: "{{ timestamp_result.stdout | trim }}"
-        csv_file: "luns_SpectrumIBM_{{ timestamp }}.csv"
-        temp_csv_path: "C:\\info_luns\\{{ csv_file }}"
-
-    - name: Copiar archivo CSV desde controlador a servidor Windows
-      ansible.windows.win_copy:
-        src: "{{ temp_csv_path }}"
-        dest: "{{ info_dir }}\\{{ csv_file }}"
-
-  post_tasks:
-    - name: Log end of playbook execution
-      ansible.builtin.include_role:
-        name: pichincha.sre.post_task
+        msg: "{{ raw_test.stdout_lines }}"
+        
+    - name: Verificar versión del sistema (método robusto)
+      ansible.builtin.raw: "oslevel -s"
+      register: os_version
+      
+    - name: Mostrar versión AIX
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} - Versión AIX: {{ os_version.stdout }}"
+        
+    - name: Verificar si es VIO Server
+      ansible.builtin.raw: |
+        if [ -x /usr/ios/cli/ioscli ]; then
+          echo "Es un VIO Server"
+          /usr/ios/cli/ioscli ioslevel 2>/dev/null || echo "No se pudo obtener ioslevel"
+        else
+          echo "No es un VIO Server (es AIX estándar)"
+        fi
+      register: vio_check
+      
+    - name: Mostrar resultado verificación VIO
+      ansible.builtin.debug:
+        msg: "{{ vio_check.stdout_lines }}"
