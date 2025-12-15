@@ -1,55 +1,67 @@
+perfecto ya funciona correctamente este seria el playbook completo 
+
 ---
-- name: Test de conexión a servidores AIX VIOs - Corregido
-  hosts: vios
-  gather_facts: no
-  
-  # Configuración específica para AIX
+- name: Descargar archivo .nmon desde VIOS
+  hosts: vios_testt
+  gather_facts: false
+
   vars:
-    ansible_shell_type: sh  # Usar sh en lugar de ksh
-    ansible_executable: /usr/bin/ksh  # Especificar ejecutable de shell
-  
+    remote_source_dir: "/home/NMON"
+
   tasks:
-    - name: Verificar si existe /usr/bin/ksh
-      ansible.builtin.command:
-        cmd: "ls -la /usr/bin/ksh"
-      register: ksh_check
-      ignore_errors: yes
-      delegate_to: localhost  # Ejecutar localmente para debug
-    
-    - name: Debug - Mostrar resultado de verificación ksh
-      ansible.builtin.debug:
-        var: ksh_check
+
+  pre_tasks:
+    - name: Log start of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.pre_task
+
+    - name: Crear directorio
+      ansible.builtin.file:
+        path: "/tmp/nmon_{{ inventory_hostname }}/"
+        state: directory
+        mode: "0755"
       delegate_to: localhost
-    
-    - name: Probar conexión con shell por defecto del sistema
-      ansible.builtin.raw: |
-        echo "Conectado exitosamente a $(hostname)"
-        echo "Shell actual: $SHELL"
-        echo "Usuario: $(whoami)"
-      register: raw_test
-      
-    - name: Mostrar resultado conexión raw
+      become: false
+
+    - name: Encontrar el último .nmon en el VIOS (ordenado por fecha)
+      ansible.builtin.raw: "ls -1t /home/NMON/*.nmon 2>/dev/null | head -1"
+      register: ultimo_nmon
+      changed_when: false
+
+    - name: Normalizar ruta del archivo encontrado
+      ansible.builtin.set_fact:
+        nmon_file: "{{ (ultimo_nmon.stdout | default('')) | regex_replace('\r', '') | trim }}"
+      changed_when: false
+
+    - name: Mostrar archivo normalizado
       ansible.builtin.debug:
-        msg: "{{ raw_test.stdout_lines }}"
-        
-    - name: Verificar versión del sistema (método robusto)
-      ansible.builtin.raw: "oslevel -s"
-      register: os_version
-      
-    - name: Mostrar versión AIX
-      ansible.builtin.debug:
-        msg: "{{ inventory_hostname }} - Versión AIX: {{ os_version.stdout }}"
-        
-    - name: Verificar si es VIO Server
-      ansible.builtin.raw: |
-        if [ -x /usr/ios/cli/ioscli ]; then
-          echo "Es un VIO Server"
-          /usr/ios/cli/ioscli ioslevel 2>/dev/null || echo "No se pudo obtener ioslevel"
-        else
-          echo "No es un VIO Server (es AIX estándar)"
-        fi
-      register: vio_check
-      
-    - name: Mostrar resultado verificación VIO
-      ansible.builtin.debug:
-        msg: "{{ vio_check.stdout_lines }}"
+        msg: "Ruta normalizada: '{{ nmon_file if nmon_file|length > 0 else 'Ninguno' }}'"
+
+    - name: Validar existencia del archivo en el remoto
+      ansible.builtin.stat:
+        path: "{{ nmon_file }}"
+      register: nmon_stat
+      when: nmon_file | length > 0
+
+    - name: Descargar el archivo .nmon al controlador
+      ansible.builtin.fetch:
+        src: "{{ nmon_file }}"
+        dest: "/tmp/nmon_{{ inventory_hostname }}/"
+        flat: true
+      when: nmon_file | length > 0 and nmon_stat.stat.exists and nmon_stat.stat.isreg
+
+    - name: Mostrar resultado local
+      ansible.builtin.shell: |
+        echo "=== Resultado ==="
+        echo "Servidor: {{ inventory_hostname }}"
+        echo "Directorio: /tmp/nmon_{{ inventory_hostname }}/"
+        echo "Archivos:"
+        ls -lh "/tmp/nmon_{{ inventory_hostname }}/" 2>/dev/null || echo "No se extrajeron archivos"
+      delegate_to: localhost
+      become: false
+      changed_when: false
+
+  post_tasks:
+    - name: Log end of playbook execution
+      ansible.builtin.include_role:
+        name: pichincha.sre.post_task
