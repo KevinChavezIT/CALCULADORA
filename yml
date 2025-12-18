@@ -1,7 +1,6 @@
-perfecto ya funciona correctamente este seria el playbook completo 
-
+este es mi playbook 
 ---
-- name: Descargar archivo .nmon desde VIOS
+- name: Descargar archivo .nmon desde VIOS y subir a Azure Blob
   hosts: vios_testt
   gather_facts: false
 
@@ -15,7 +14,7 @@ perfecto ya funciona correctamente este seria el playbook completo
       ansible.builtin.include_role:
         name: pichincha.sre.pre_task
 
-    - name: Crear directorio
+    - name: Crear directorio local de staging
       ansible.builtin.file:
         path: "/tmp/nmon_{{ inventory_hostname }}/"
         state: directory
@@ -24,7 +23,7 @@ perfecto ya funciona correctamente este seria el playbook completo
       become: false
 
     - name: Encontrar el último .nmon en el VIOS (ordenado por fecha)
-      ansible.builtin.raw: "ls -1t /home/NMON/*.nmon 2>/dev/null | head -1"
+      ansible.builtin.raw: "ls -1t {{ remote_source_dir }}/*.nmon 2>/dev/null | head -1"
       register: ultimo_nmon
       changed_when: false
 
@@ -35,7 +34,7 @@ perfecto ya funciona correctamente este seria el playbook completo
 
     - name: Mostrar archivo normalizado
       ansible.builtin.debug:
-        msg: "Ruta normalizada: '{{ nmon_file if nmon_file|length > 0 else 'Ninguno' }}'"
+        msg: "Ruta normalizada: '{{ nmon_file if (nmon_file | length > 0) else 'Ninguno' }}'"
 
     - name: Validar existencia del archivo en el remoto
       ansible.builtin.stat:
@@ -61,7 +60,119 @@ perfecto ya funciona correctamente este seria el playbook completo
       become: false
       changed_when: false
 
+    - name: Calcular fecha local para prefijo (YYYY-MM-DD)
+      delegate_to: localhost
+      become: false
+      ansible.builtin.set_fact:
+        date_folder: "{{ lookup('pipe', 'date +%F') }}"
+
+    - name: Definir nombres y rutas para la subida a Azure
+      delegate_to: localhost
+      become: false
+      vars:
+        _nmon_local_dir: "/tmp/nmon_{{ inventory_hostname }}/"
+        _nmon_local_file: "{{ nmon_file | basename }}"
+        _blob_prefix: "AIX/{{ inventory_hostname }}/{{ date_folder }}"
+      ansible.builtin.set_fact:
+        azure_rg: "rg-sre-automatizacion"
+        azure_storage_account: "stsreautdev01"
+        azure_container: "reporte-nmon"
+        nmon_local_dir: "{{ _nmon_local_dir }}"
+        nmon_local_file: "{{ _nmon_local_file }}"
+        nmon_blob_prefix: "{{ _blob_prefix }}"
+        nmon_blob_name: "{{ _blob_prefix }}/{{ _nmon_local_file }}"
+
+    - name: Subir archivo NMON a Azure Storage Blob
+      azure.azcollection.azure_rm_storageblob:
+        resource_group: "{{ azure_rg }}"
+        storage_account_name: "{{ azure_storage_account }}"
+        force: true
+        container: "{{ azure_container }}"
+        blob: "{{ nmon_blob_name }}"
+        src: "{{ nmon_local_dir }}/{{ nmon_local_file }}"
+      delegate_to: localhost
+      register: azure_upload_result
+
+    - name: Mostrar resumen de subida
+      delegate_to: localhost
+      become: false
+      ansible.builtin.debug:
+        msg: >
+          Blob: {{ nmon_blob_name }}
+          Container: {{ azure_container }}
+          Storage Account: {{ azure_storage_account }}
+          Subida realizada: {{ azure_upload_result.changed | default(false) }}
+
   post_tasks:
     - name: Log end of playbook execution
       ansible.builtin.include_role:
         name: pichincha.sre.post_task
+
+me genera este error 
+TASK [Subir archivo NMON a Azure Storage Blob] *********************************  
+2:39:21 p. m.
+48
+An exception occurred during task execution. To see the full traceback, use -vvv. The error was: ImportError: cannot import name 'BlobServiceClient' from 'azure.storage.blob' (/usr/local/lib/python3.9/site-packages/azure/storage/blob/__init__.py)
+49
+fatal: [TSVIOS01 -> localhost]: FAILED! => {"changed": false, "msg": "Failed to import the required Python library (ansible[azure] (azure >= 2.0.0)) on 9e0b9d939700's Python /usr/bin/python3.9. Please read the module documentation and install it in the appropriate location. If the required library is installed, but Ansible is using the wrong Python interpreter, please consult the documentation on ansible_python_interpreter"}
+Data de la tarea
+exception: >
+  Traceback (most recent call last):
+    File "/tmp/ansible_azure.azcollection.azure_rm_storageblob_payload_90ejb5uq/ansible_azure.azcollection.azure_rm_storageblob_payload.zip/ansible_collections/azure/azcollection/plugins/module_utils/azure_rm_common.py", line 258, in <module>
+      from azure.storage.blob import BlobServiceClient
+  ImportError: cannot import name 'BlobServiceClient' from 'azure.storage.blob'
+  (/usr/local/lib/python3.9/site-packages/azure/storage/blob/__init__.py)
+msg: >-
+  Failed to import the required Python library (ansible[azure] (azure >= 2.0.0))
+  on 9e0b9d939700's Python /usr/bin/python3.9. Please read the module
+  documentation and install it in the appropriate location. If the required
+  library is installed, but Ansible is using the wrong Python interpreter,
+  please consult the documentation on ansible_python_interpreter
+invocation:
+  module_args:
+    resource_group: rg-sre-automatizacion
+    storage_account_name: stsreautdev01
+    force: true
+    container: reporte-nmon
+    blob: AIX/TSVIOS01/2025-12-18/TSVIOS01_251218_0000.nmon
+    src: /tmp/nmon_TSVIOS01//TSVIOS01_251218_0000.nmon
+    auth_source: auto
+    cloud_environment: AzureCloud
+    api_profile: latest
+    disable_instance_discovery: false
+    append_tags: true
+    auth_mode: key
+    blob_type: block
+    state: present
+    profile: null
+    subscription_id: null
+    client_id: null
+    secret: null
+    tenant: null
+    ad_user: null
+    password: null
+    cert_validation_mode: null
+    adfs_authority_url: null
+    log_mode: null
+    log_path: null
+    x509_certificate_path: null
+    thumbprint: null
+    tags: null
+    standard_blob_tier: null
+    dest: null
+    batch_upload_src: null
+    batch_upload_dst: null
+    public_access: null
+    content_type: null
+    content_encoding: null
+    content_language: null
+    content_disposition: null
+    cache_control: null
+    content_md5: null
+_ansible_no_log: false
+changed: false
+_ansible_delegated_vars:
+  ansible_host: localhost
+  ansible_port: null
+  ansible_user: usrtaroa
+  ansible_connection: local
