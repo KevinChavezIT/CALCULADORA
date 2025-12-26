@@ -11,3 +11,5 @@
     End If
     ' --- FIN DEL CAMBIO ---
 #End If
+
+Public BatchModeFilePath As String  ' Para pasar la ruta sin usar celdas
