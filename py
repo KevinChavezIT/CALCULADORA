@@ -1,15 +1,58 @@
-#Else  ' Windows
-    ' --- PARA AUTOMATIZACIÓN SIN USAR CELDAS ---
-    ' Si estamos en modo batch, usamos la variable global FilePath
-    If BatchModeFilePath <> "" Then
-        FileList = Array(BatchModeFilePath)
-        Numfiles = 1
+Sub ProcesarTodosLosNmon()
+    Dim fso As Object
+    Dim carpetaBase As String
+    Dim archivo As Object
+    Dim archivosProcesados As Integer
+    Dim errores As String
+    Dim erroresCount As Integer
+    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    carpetaBase = "C:\nmon-Vios"  ' Ruta donde están todos los .nmon
+    
+    archivosProcesados = 0
+    erroresCount = 0
+    errores = "Errores encontrados:" & vbNewLine
+    
+    ' Desactivar actualización de pantalla para mayor velocidad
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    
+    ' Recorre solo los archivos en la carpeta base
+    For Each archivo In fso.GetFolder(carpetaBase).Files
+        If LCase(fso.GetExtensionName(archivo.Name)) = "nmon" Then
+            
+            ' Mostrar progreso en barra de estado
+            Application.StatusBar = "Procesando (" & archivosProcesados + 1 & "): " & archivo.Name
+            
+            ' Pasar la ruta directamente a través de variable global
+            BatchModeFilePath = archivo.Path
+            
+            ' Ejecutar el análisis
+            On Error Resume Next
+            Application.Run "Main", 1  ' Modo batch = 1
+            On Error GoTo 0
+            
+            ' Limpiar la variable
+            BatchModeFilePath = ""
+            
+            archivosProcesados = archivosProcesados + 1
+            
+            ' Pequeña pausa para evitar sobrecarga
+            DoEvents
+        End If
+    Next archivo
+    
+    ' Restaurar configuración
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+    Application.StatusBar = False
+    
+    ' Mostrar resumen
+    If erroresCount > 0 Then
+        MsgBox "Proceso completado con " & archivosProcesados & " archivos." & vbNewLine & _
+               erroresCount & " errores." & vbNewLine & vbNewLine & errores, vbExclamation
     Else
-        ' Modo normal: usar FileList o diálogo
-        FileName = Trim(FileName)
-        ' ... resto del código original ...
+        MsgBox "Proceso completado exitosamente." & vbNewLine & _
+               "Total de archivos procesados: " & archivosProcesados, vbInformation
     End If
-    ' --- FIN DEL CAMBIO ---
-#End If
-
-Public BatchModeFilePath As String  ' Para pasar la ruta sin usar celdas
+End Sub
