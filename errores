@@ -54,7 +54,7 @@ try {
     if (-not $buttonClicked) {
         Write-Host "Buscando por nombres comunes..." -ForegroundColor Yellow
 
-        $commonNames = @("Button2_Click", "'nmon analyser v69_2 2.xlsm'!Button2_Click", "btnProcesar", "btnIniciar")
+        $commonNames = @("Button2_Click", "Button2_Click", "Analyze nmon data", "'nmon analyser v69_2 2.xlsm'")
 
         foreach ($name in $commonNames) {
             try {
