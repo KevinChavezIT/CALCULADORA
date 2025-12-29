@@ -140,3 +140,24 @@ try {
 Write-Host ""
 Write-Host "Presiona cualquier tecla para salir..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+
+
+
+
+PS C:\Scripts> C:\Scripts\NMON_Auto_Processor.ps1
+=== SIMULADOR DE CLIC EN BOTON EXCEL ===
+Archivo: nmon analyser v69_2 2.xlsm
+Hora inicio: 17:54:12
+
+Iniciando Excel (modo oculto)...
+OK - Excel iniciado
+Abriendo archivo Excel...
+OK - Archivo abierto
+Hoja activa: Analyser
+Buscando boton...
+Buscando por nombres comunes...
+
+=== ERROR ===
+Mensaje: No se pudo encontrar ningun boton para hacer clic
+
+PS C:\Scripts> 
