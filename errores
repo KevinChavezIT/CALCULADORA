@@ -138,3 +138,17 @@ try {
 Write-Host ""
 Write-Host "Presiona cualquier tecla para salir..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+
+
+
+
+
+
+
+@echo off
+echo Ejecutando procesador NMON...
+echo.
+powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\Scripts\Clic_Boton_NMON.ps1"
+echo.
+echo Proceso completado.
+pause
