@@ -1,13 +1,13 @@
 # ============================================
-# SIMULADOR DE CLIC EN BOTÃ“N EXCEL - NMON
+# SIMULADOR DE CLIC EN BOTON EXCEL - NMON
 # ============================================
 
-# ConfiguraciÃ³n bÃ¡sica
-$excelPath = "C:\nmon-Vios\nmon analyser v69_2 2.xlsm"  # <-- CAMBIA ESTA RUTA
+# Configuracion basica
+$excelPath = "C:\nmon-Vios\nmon analyser v69_2 2.xlsm"
 $timeoutSeconds = 120
 
 # Iniciar
-Write-Host "=== SIMULADOR DE CLIC EN BOTÃ“N EXCEL ===" -ForegroundColor Cyan
+Write-Host "=== SIMULADOR DE CLIC EN BOTON EXCEL ===" -ForegroundColor Cyan
 Write-Host "Archivo: $(Split-Path $excelPath -Leaf)" -ForegroundColor White
 Write-Host "Hora inicio: $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor White
 Write-Host ""
@@ -19,51 +19,51 @@ try {
     $excel.Visible = $false
     $excel.DisplayAlerts = $false
     $excel.ScreenUpdating = $false
-    Write-Host "âœ“ Excel iniciado" -ForegroundColor Green
-    
+    Write-Host "OK - Excel iniciado" -ForegroundColor Green
+
     # 2. Abrir el archivo
     Write-Host "Abriendo archivo Excel..." -ForegroundColor Yellow
     $workbook = $excel.Workbooks.Open($excelPath)
-    Write-Host "âœ“ Archivo abierto" -ForegroundColor Green
-    
-    # 3. Ir a la primera hoja (donde suele estar el botÃ³n)
+    Write-Host "OK - Archivo abierto" -ForegroundColor Green
+
+    # 3. Ir a la primera hoja (donde suele estar el boton)
     $worksheet = $workbook.Worksheets.Item(1)
     Write-Host "Hoja activa: $($worksheet.Name)" -ForegroundColor White
-    
-    # 4. Buscar y hacer clic en el botÃ³n
-    Write-Host "Buscando botÃ³n..." -ForegroundColor Yellow
+
+    # 4. Buscar y hacer clic en el boton
+    Write-Host "Buscando boton..." -ForegroundColor Yellow
     $buttonClicked = $false
-    
-    # Estrategia 1: Buscar cualquier botÃ³n
+
+    # Estrategia 1: Buscar cualquier boton
     foreach ($oleObject in $worksheet.OLEObjects()) {
         $objectType = $oleObject.Object.GetType().Name
-        
+
         if ($objectType -eq "CommandButton" -or $objectType -eq "Button") {
-            Write-Host "âœ“ BotÃ³n encontrado: $($oleObject.Name)" -ForegroundColor Green
-            
-            # HACER CLIC EN EL BOTÃ“N
+            Write-Host "OK - Boton encontrado: $($oleObject.Name)" -ForegroundColor Green
+
+            # HACER CLIC EN EL BOTON
             $oleObject.Object.Value = $true
             $buttonClicked = $true
-            
-            Write-Host "âœ“ Clic simulado en el botÃ³n" -ForegroundColor Green
+
+            Write-Host "OK - Clic simulado en el boton" -ForegroundColor Green
             break
         }
     }
-    
-    # Estrategia 2: Si no encontrÃ³, buscar por nombres comunes
+
+    # Estrategia 2: Si no encontro, buscar por nombres comunes
     if (-not $buttonClicked) {
         Write-Host "Buscando por nombres comunes..." -ForegroundColor Yellow
-        
+
         $commonNames = @("Button2_Click", "'nmon analyser v69_2 2.xlsm'!Button2_Click", "btnProcesar", "btnIniciar")
-        
+
         foreach ($name in $commonNames) {
             try {
                 $oleObject = $worksheet.OLEObjects($name)
                 if ($oleObject -ne $null) {
-                    Write-Host "âœ“ BotÃ³n encontrado por nombre: $name" -ForegroundColor Green
+                    Write-Host "OK - Boton encontrado por nombre: $name" -ForegroundColor Green
                     $oleObject.Object.Value = $true
                     $buttonClicked = $true
-                    Write-Host "âœ“ Clic simulado" -ForegroundColor Green
+                    Write-Host "OK - Clic simulado" -ForegroundColor Green
                     break
                 }
             } catch {
@@ -71,55 +71,57 @@ try {
             }
         }
     }
-    
+
     # Verificar si se hizo clic
     if (-not $buttonClicked) {
-        throw "No se pudo encontrar ningÃºn botÃ³n para hacer clic"
+        throw "No se pudo encontrar ningun boton para hacer clic"
     }
-    
+
     # 5. Esperar a que el procesamiento termine
     Write-Host ""
     Write-Host "Esperando a que termine el procesamiento..." -ForegroundColor Yellow
-    Write-Host "(MÃ¡ximo $($timeoutSeconds / 2) minutos)" -ForegroundColor Gray
-    
+    Write-Host "(Maximo $($timeoutSeconds / 60) minutos)" -ForegroundColor Gray
+
     $startWait = Get-Date
     $elapsed = 0
-    
+
     do {
         Start-Sleep -Seconds 10
         $elapsed = ((Get-Date) - $startWait).TotalSeconds
-        
+
         # Mostrar progreso cada 10 segundos
         if ([math]::Round($elapsed) % 10 -eq 0) {
-            Write-Host "  Esperando... ($([math]::Round($elapsed)) segundos)" -ForegroundColor Gray
+            $segundos = [math]::Round($elapsed)
+            Write-Host "  Esperando... ($segundos segundos)" -ForegroundColor Gray
         }
-        
+
     } while ($elapsed -lt $timeoutSeconds -and $excel.CalculationState -ne -4105)
-    
+
     # 6. Cerrar Excel
     Write-Host "Cerrando Excel..." -ForegroundColor Yellow
     $workbook.Saved = $true
     $workbook.Close($false)
     $excel.Quit()
-    
+
     # 7. Limpiar objetos COM
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($worksheet) | Out-Null
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workbook) | Out-Null
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
-    
-    Write-Host "âœ“ Excel cerrado correctamente" -ForegroundColor Green
-    
+
+    Write-Host "OK - Excel cerrado correctamente" -ForegroundColor Green
+
     # 8. Mostrar resumen
     Write-Host ""
     Write-Host "=== PROCESO COMPLETADO ===" -ForegroundColor Cyan
-    Write-Host "DuraciÃ³n total: $([math]::Round($elapsed / 2, 1)) minutos" -ForegroundColor White
-    Write-Host "Estado: Ã‰XITO - BotÃ³n presionado y procesamiento completado" -ForegroundColor Green
-    
+    $minutos = [math]::Round($elapsed / 60, 1)
+    Write-Host "Duracion total: $minutos minutos" -ForegroundColor White
+    Write-Host "Estado: EXITO - Boton presionado y procesamiento completado" -ForegroundColor Green
+
 } catch {
     Write-Host ""
     Write-Host "=== ERROR ===" -ForegroundColor Red
     Write-Host "Mensaje: $($_.Exception.Message)" -ForegroundColor Red
-    
+
     # Intentar cerrar Excel si hubo error
     try {
         if ($workbook -ne $null) { $workbook.Close($false) }
@@ -127,7 +129,7 @@ try {
     } catch {
         Write-Host "Error al cerrar Excel: $_" -ForegroundColor Yellow
     }
-    
+
     exit 1
 } finally {
     # Limpieza forzada
@@ -138,36 +140,3 @@ try {
 Write-Host ""
 Write-Host "Presiona cualquier tecla para salir..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-
-
-error
-PS C:\Scripts> C:\Scripts\NMON_Auto_Processor.ps1
-At C:\Scripts\NMON_Auto_Processor.ps1:94 char:68
-+ ... ite-Host "  Esperando... ($([math]::Round($elapsed)) segundos)" -Fore ...
-+                                                          ~~~~~~~~
-Unexpected token 'segundos' in expression or statement.
-At C:\Scripts\NMON_Auto_Processor.ps1:94 char:67
-+ ...        Write-Host "  Esperando... ($([math]::Round($elapsed)) segundo ...
-+                                                                  ~
-Missing closing ')' in expression.
-At C:\Scripts\NMON_Auto_Processor.ps1:94 char:76
-+ ... te-Host "  Esperando... ($([math]::Round($elapsed)) segundos)" -Foreg ...
-+                                                                 ~
-Unexpected token ')' in expression or statement.
-At C:\Scripts\NMON_Auto_Processor.ps1:100 char:17
-+     Write-Host "Cerrando Excel..." -ForegroundColor Yellow
-+                 ~~~~~~~~
-Unexpected token 'Cerrando' in expression or statement.
-At C:\Scripts\NMON_Auto_Processor.ps1:118 char:1
-+ } catch {
-+ ~
-Unexpected token '}' in expression or statement.
-At C:\Scripts\NMON_Auto_Processor.ps1:132 char:3
-+ } finally {
-+   ~~~~~~~
-Unexpected token 'finally' in expression or statement.
-    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
-    + FullyQualifiedErrorId : UnexpectedToken
- 
-
-PS C:\Scripts> 
