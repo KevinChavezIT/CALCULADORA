@@ -1,163 +1,31 @@
 # ============================================
-# SIMULADOR DE CLIC EN BOTON EXCEL - NMON
+# VERSION SIMPLIFICADA - Ejecutar macro específica
 # ============================================
 
-# Configuracion basica
 $excelPath = "C:\nmon-Vios\nmon analyser v69_2 2.xlsm"
-$timeoutSeconds = 120
-
-# Iniciar
-Write-Host "=== SIMULADOR DE CLIC EN BOTON EXCEL ===" -ForegroundColor Cyan
-Write-Host "Archivo: $(Split-Path $excelPath -Leaf)" -ForegroundColor White
-Write-Host "Hora inicio: $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor White
-Write-Host ""
 
 try {
-    # 1. Iniciar Excel OCULTO
-    Write-Host "Iniciando Excel (modo oculto)..." -ForegroundColor Yellow
     $excel = New-Object -ComObject Excel.Application
-    $excel.Visible = $false
-    $excel.DisplayAlerts = $false
-    $excel.ScreenUpdating = $false
-    Write-Host "OK - Excel iniciado" -ForegroundColor Green
-
-    # 2. Abrir el archivo
-    Write-Host "Abriendo archivo Excel..." -ForegroundColor Yellow
+    $excel.Visible = $true  # Déjalo visible para ver qué pasa
     $workbook = $excel.Workbooks.Open($excelPath)
-    Write-Host "OK - Archivo abierto" -ForegroundColor Green
-
-    # 3. Ir a la primera hoja (donde suele estar el boton)
-    $worksheet = $workbook.Worksheets.Item(1)
-    Write-Host "Hoja activa: $($worksheet.Name)" -ForegroundColor White
-
-    # 4. Buscar y hacer clic en el boton
-    Write-Host "Buscando boton..." -ForegroundColor Yellow
-    $buttonClicked = $false
-
-    # Estrategia 1: Buscar cualquier boton
-    foreach ($oleObject in $worksheet.OLEObjects()) {
-        $objectType = $oleObject.Object.GetType().Name
-
-        if ($objectType -eq "CommandButton" -or $objectType -eq "Button") {
-            Write-Host "OK - Boton encontrado: $($oleObject.Name)" -ForegroundColor Green
-
-            # HACER CLIC EN EL BOTON
-            $oleObject.Object.Value = $true
-            $buttonClicked = $true
-
-            Write-Host "OK - Clic simulado en el boton" -ForegroundColor Green
-            break
-        }
-    }
-
-    # Estrategia 2: Si no encontro, buscar por nombres comunes
-    if (-not $buttonClicked) {
-        Write-Host "Buscando por nombres comunes..." -ForegroundColor Yellow
-
-        $commonNames = @("Button2_Click", "Button2_Click", "Analyze nmon data", "'nmon analyser v69_2 2.xlsm'")
-
-        foreach ($name in $commonNames) {
-            try {
-                $oleObject = $worksheet.OLEObjects($name)
-                if ($oleObject -ne $null) {
-                    Write-Host "OK - Boton encontrado por nombre: $name" -ForegroundColor Green
-                    $oleObject.Object.Value = $true
-                    $buttonClicked = $true
-                    Write-Host "OK - Clic simulado" -ForegroundColor Green
-                    break
-                }
-            } catch {
-                # Continuar
-            }
-        }
-    }
-
-    # Verificar si se hizo clic
-    if (-not $buttonClicked) {
-        throw "No se pudo encontrar ningun boton para hacer clic"
-    }
-
-    # 5. Esperar a que el procesamiento termine
-    Write-Host ""
-    Write-Host "Esperando a que termine el procesamiento..." -ForegroundColor Yellow
-    Write-Host "(Maximo $($timeoutSeconds / 60) minutos)" -ForegroundColor Gray
-
-    $startWait = Get-Date
-    $elapsed = 0
-
-    do {
-        Start-Sleep -Seconds 10
-        $elapsed = ((Get-Date) - $startWait).TotalSeconds
-
-        # Mostrar progreso cada 10 segundos
-        if ([math]::Round($elapsed) % 10 -eq 0) {
-            $segundos = [math]::Round($elapsed)
-            Write-Host "  Esperando... ($segundos segundos)" -ForegroundColor Gray
-        }
-
-    } while ($elapsed -lt $timeoutSeconds -and $excel.CalculationState -ne -4105)
-
-    # 6. Cerrar Excel
-    Write-Host "Cerrando Excel..." -ForegroundColor Yellow
-    $workbook.Saved = $true
-    $workbook.Close($false)
+    
+    # IMPORTANTE: Debes habilitar macros manualmente la primera vez
+    Write-Host "Por favor, habilita las macros en Excel si aparece una advertencia..." -ForegroundColor Yellow
+    Write-Host "Luego presiona Enter aquí para continuar..." -ForegroundColor Yellow
+    Read-Host
+    
+    # Ejecutar la macro (ajusta el nombre según lo que veas en Excel)
+    $excel.Run("'nmon analyser v69_2 2.xlsm'!Button2_Click")
+    
+    Write-Host "Macro ejecutada. Esperando 2 minutos..." -ForegroundColor Green
+    Start-Sleep -Seconds 120
+    
+    $workbook.Save()
+    $workbook.Close()
     $excel.Quit()
-
-    # 7. Limpiar objetos COM
-    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($worksheet) | Out-Null
-    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workbook) | Out-Null
-    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
-
-    Write-Host "OK - Excel cerrado correctamente" -ForegroundColor Green
-
-    # 8. Mostrar resumen
-    Write-Host ""
-    Write-Host "=== PROCESO COMPLETADO ===" -ForegroundColor Cyan
-    $minutos = [math]::Round($elapsed / 60, 1)
-    Write-Host "Duracion total: $minutos minutos" -ForegroundColor White
-    Write-Host "Estado: EXITO - Boton presionado y procesamiento completado" -ForegroundColor Green
-
+    
+    Write-Host "Completado!" -ForegroundColor Green
+    
 } catch {
-    Write-Host ""
-    Write-Host "=== ERROR ===" -ForegroundColor Red
-    Write-Host "Mensaje: $($_.Exception.Message)" -ForegroundColor Red
-
-    # Intentar cerrar Excel si hubo error
-    try {
-        if ($workbook -ne $null) { $workbook.Close($false) }
-        if ($excel -ne $null) { $excel.Quit() }
-    } catch {
-        Write-Host "Error al cerrar Excel: $_" -ForegroundColor Yellow
-    }
-
-    exit 1
-} finally {
-    # Limpieza forzada
-    [System.GC]::Collect()
-    [System.GC]::WaitForPendingFinalizers()
+    Write-Host "Error: $_" -ForegroundColor Red
 }
-
-Write-Host ""
-Write-Host "Presiona cualquier tecla para salir..." -ForegroundColor Gray
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-
-
-
-
-PS C:\Scripts> C:\Scripts\NMON_Auto_Processor.ps1
-=== SIMULADOR DE CLIC EN BOTON EXCEL ===
-Archivo: nmon analyser v69_2 2.xlsm
-Hora inicio: 17:54:12
-
-Iniciando Excel (modo oculto)...
-OK - Excel iniciado
-Abriendo archivo Excel...
-OK - Archivo abierto
-Hoja activa: Analyser
-Buscando boton...
-Buscando por nombres comunes...
-
-=== ERROR ===
-Mensaje: No se pudo encontrar ningun boton para hacer clic
-
-PS C:\Scripts> 
