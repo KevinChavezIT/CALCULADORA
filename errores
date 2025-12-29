@@ -29,3 +29,14 @@ try {
 } catch {
     Write-Host "Error: $_" -ForegroundColor Red
 }
+
+
+
+PS C:\Scripts> C:\Scripts\NMON_Auto_Processor.ps1
+Por favor, habilita las macros en Excel si aparece una advertencia...
+Luego presiona Enter aquí para continuar...
+
+
+Error: Exception calling "Run" with "1" argument(s): "Exception from HRESULT: 0x800A9C68"
+
+PS C:\Scripts> 
