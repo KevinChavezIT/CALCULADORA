@@ -3,7 +3,6 @@
                                        
 Option Explicit
 Public Analyser As String              'Analyser version (from main sheet)
-Public BatchModeFilePath As String     'Para pasar la ruta sin usar celdas
 Public Batch As Integer                'Batch mode setting (0/1)
 Public BBBFont As String               'name of fixed pitch font to use on BBB sheets
 Public ColNum As Long                  'Last column number
@@ -867,19 +866,11 @@ Batch = code
     Set fs = CreateObject("Scripting.FileSystemObject")  '@RM 11/12/2015 can't do this on MAC
 #End If
 
-#Else  ' Windows
-    ' --- PARA AUTOMATIZACIÓN SIN USAR CELDAS ---
-    ' Si estamos en modo batch, usamos la variable global FilePath
-    If BatchModeFilePath <> "" Then
-        FileList = Array(BatchModeFilePath)
-        Numfiles = 1
-    Else
-        ' Modo normal: usar FileList o diálogo
-        FileName = Trim(FileName)
-        ' ... resto del código original ...
-    End If
-    ' --- FIN DEL CAMBIO ---
-#End If
+Call GetSettings(FileList, Numfiles)
+If Numfiles = 0 Then
+    Batch = 0
+    Exit Sub
+End If
     
 Application.ScreenUpdating = False      'set to True for debugging/False to improve performance
 
@@ -1033,7 +1024,7 @@ For I = startVal To endVal   ' @RM Mac FileList variant is 0-based
         
             ' === BLOQUE PARA GUARDAR EN CARPETA DESTINO ===
             Dim destino As String
-            destino = "C:\nmon-Vios\nmons_analizados"
+            destino = "C:\Users\dlugmana\Downloads\Nmon\Procesados\"
             If Right(destino, 1) <> "\" Then destino = destino & "\"
         
             ' Obtener nombre del archivo final, sin ruta original
@@ -5323,36 +5314,33 @@ End Sub
 Sub ProcesarTodosLosNmon()
     Dim fso As Object
     Dim carpetaBase As String
-    Dim archivo As Object
+    Dim carpeta As Object, archivo As Object
+    Dim folder As Object
     Dim ws As Worksheet
     Dim rutaArchivo As String
-    Dim archivosProcesados As Integer
 
     Set fso = CreateObject("Scripting.FileSystemObject")
-    carpetaBase = "C:\nmon-Vios"  ' Ruta donde están todos los .nmon
-    
+    carpetaBase = "C:\Users\dlugmana\Downloads\Nmon\viaosasd01\"  ' <-- esta es tu ruta principal
+
+    Set folder = fso.GetFolder(carpetaBase)
     Set ws = ThisWorkbook.Sheets("Analyser")
-    archivosProcesados = 0
 
-    ' Recorre solo los archivos en la carpeta base (sin subcarpetas)
-    For Each archivo In fso.GetFolder(carpetaBase).Files
-        If LCase(fso.GetExtensionName(archivo.Name)) = "nmon" Then
-            rutaArchivo = archivo.Path
+    ' Recorre todas las carpetas dentro de Nmon
+    For Each carpeta In folder.SubFolders
+        For Each archivo In carpeta.Files
+            If LCase(fso.GetExtensionName(archivo.Name)) = "nmon" Then
+                rutaArchivo = archivo.Path
 
-            ' Mostrar en la hoja qué archivo se está procesando
-            ws.Range("B2").Value = rutaArchivo
-            ws.Range("C2").Value = carpetaBase
-            
-            Application.StatusBar = "Procesando: " & archivo.Name & " (" & archivosProcesados + 1 & ")"
-            DoEvents
+                ' Mostrar qué archivo se está procesando
+                ws.Range("B2").Value = carpeta.Path
+                ws.Range("C2").Value = rutaArchivo
+                DoEvents
 
-            ' Ejecutar el análisis (Batch = 0 para procesar uno a uno)
-            Application.Run "Main", 0
-            archivosProcesados = archivosProcesados + 1
-        End If
-    Next archivo
+                ' Ejecutar el análisis
+                Application.Run "Main", 0
+            End If
+        Next
+    Next
 
-    Application.StatusBar = False
-    MsgBox "Proceso completado. Total de archivos procesados: " & archivosProcesados, vbInformation
+    MsgBox "? Todos los archivos .nmon han sido procesados con éxito.", vbInformation
 End Sub
-
