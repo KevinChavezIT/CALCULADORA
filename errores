@@ -3,8 +3,8 @@
 # ============================================
 
 # Configuración básica
-$excelPath = "C:\Ruta\A\Tu\Archivo\NMON_Analyser.xlsm"  # <-- CAMBIA ESTA RUTA
-$timeoutSeconds = 600  # 10 minutos máximo de espera
+$excelPath = "C:\nmon-Vios\nmon analyser v69_2 2.xlsm"  # <-- CAMBIA ESTA RUTA
+$timeoutSeconds = 120
 
 # Iniciar
 Write-Host "=== SIMULADOR DE CLIC EN BOTÓN EXCEL ===" -ForegroundColor Cyan
@@ -54,7 +54,7 @@ try {
     if (-not $buttonClicked) {
         Write-Host "Buscando por nombres comunes..." -ForegroundColor Yellow
         
-        $commonNames = @("Button1", "CommandButton1", "btnProcesar", "btnIniciar")
+        $commonNames = @("Button2_Click", "'nmon analyser v69_2 2.xlsm'!Button2_Click", "btnProcesar", "btnIniciar")
         
         foreach ($name in $commonNames) {
             try {
@@ -80,7 +80,7 @@ try {
     # 5. Esperar a que el procesamiento termine
     Write-Host ""
     Write-Host "Esperando a que termine el procesamiento..." -ForegroundColor Yellow
-    Write-Host "(Máximo $($timeoutSeconds / 60) minutos)" -ForegroundColor Gray
+    Write-Host "(Máximo $($timeoutSeconds / 2) minutos)" -ForegroundColor Gray
     
     $startWait = Get-Date
     $elapsed = 0
@@ -89,8 +89,8 @@ try {
         Start-Sleep -Seconds 10
         $elapsed = ((Get-Date) - $startWait).TotalSeconds
         
-        # Mostrar progreso cada 30 segundos
-        if ([math]::Round($elapsed) % 30 -eq 0) {
+        # Mostrar progreso cada 10 segundos
+        if ([math]::Round($elapsed) % 10 -eq 0) {
             Write-Host "  Esperando... ($([math]::Round($elapsed)) segundos)" -ForegroundColor Gray
         }
         
@@ -112,7 +112,7 @@ try {
     # 8. Mostrar resumen
     Write-Host ""
     Write-Host "=== PROCESO COMPLETADO ===" -ForegroundColor Cyan
-    Write-Host "Duración total: $([math]::Round($elapsed / 60, 1)) minutos" -ForegroundColor White
+    Write-Host "Duración total: $([math]::Round($elapsed / 2, 1)) minutos" -ForegroundColor White
     Write-Host "Estado: ÉXITO - Botón presionado y procesamiento completado" -ForegroundColor Green
     
 } catch {
