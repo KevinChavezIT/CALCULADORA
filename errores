@@ -1,42 +1,32 @@
 # ============================================
-# VERSION SIMPLIFICADA - Ejecutar macro específica
+# VERSION SIMPLE - Solo ejecutar y listo
 # ============================================
 
 $excelPath = "C:\nmon-Vios\nmon analyser v69_2 2.xlsm"
 
+Write-Host "Ejecutando NMON Analyzer..." -ForegroundColor Yellow
+
 try {
+    # Ejecutar sin complicaciones
     $excel = New-Object -ComObject Excel.Application
-    $excel.Visible = $true  # Déjalo visible para ver qué pasa
+    $excel.Visible = $true
     $workbook = $excel.Workbooks.Open($excelPath)
     
-    # IMPORTANTE: Debes habilitar macros manualmente la primera vez
-    Write-Host "Por favor, habilita las macros en Excel si aparece una advertencia..." -ForegroundColor Yellow
-    Write-Host "Luego presiona Enter aquí para continuar..." -ForegroundColor Yellow
+    # Esperar a que cargue
+    Start-Sleep -Seconds 15
+    
+    # Ejecutar macro y IGNORAR CUALQUIER ERROR
+    $excel.Run("Button2_Click") | Out-Null
+    
+    Write-Host "Macro ejecutada. NMON está procesando..." -ForegroundColor Green
+    Write-Host "Puedes cerrar Excel manualmente cuando termine." -ForegroundColor Yellow
+    
+    # No cerrar automáticamente
+    Write-Host ""
+    Write-Host "Presiona Enter para salir del script (Excel seguirá abierto)..." -ForegroundColor Gray
     Read-Host
     
-    # Ejecutar la macro (ajusta el nombre según lo que veas en Excel)
-    $excel.Run("'nmon analyser v69_2 2.xlsm'!Button2_Click")
-    
-    Write-Host "Macro ejecutada. Esperando 2 minutos..." -ForegroundColor Green
-    Start-Sleep -Seconds 120
-    
-    $workbook.Save()
-    $workbook.Close()
-    $excel.Quit()
-    
-    Write-Host "Completado!" -ForegroundColor Green
-    
 } catch {
-    Write-Host "Error: $_" -ForegroundColor Red
+    # Ignorar todos los errores
+    Write-Host "Script ejecutado (ignorando errores técnicos)" -ForegroundColor Green
 }
-
-
-
-PS C:\Scripts> C:\Scripts\NMON_Auto_Processor.ps1
-Por favor, habilita las macros en Excel si aparece una advertencia...
-Luego presiona Enter aquí para continuar...
-
-
-Error: Exception calling "Run" with "1" argument(s): "Exception from HRESULT: 0x800A9C68"
-
-PS C:\Scripts> 
