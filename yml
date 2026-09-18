@@ -1,9 +1,6 @@
-Modifica mapear_campos para que, al extraer el valor de una etiqueta encontrada
-en la descripción, el valor se corte justo antes de la siguiente etiqueta que
-también aparezca en la descripción (buscando la posición más cercana entre
-todas las demás etiquetas de la lista), en vez de tomar todo el texto restante.
-Si no hay otra etiqueta después en el texto, el valor toma el resto de la
-descripción hasta el final. Limpia el valor final con strip() y elimina
-signos de puntuación sueltos al inicio o final (como puntos o comas).
-Mantén el resto de la lógica igual (case-insensitive, input() si no hay
-coincidencia).
+Modifica mapear_campos para que, antes de buscar coincidencias, normalice
+cada etiqueta tomando solo el texto antes del primer paréntesis "(" (si existe),
+usando ese texto normalizado como palabra clave de búsqueda en la descripción.
+El diccionario de resultado debe seguir usando la etiqueta ORIGINAL completa
+(con el paréntesis) como clave, solo la búsqueda usa la versión recortada.
+Aplica strip() al texto normalizado para quitar espacios sobrantes.
